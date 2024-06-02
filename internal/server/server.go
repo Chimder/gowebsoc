@@ -1,12 +1,15 @@
 package server
 
 import (
+	"goSql/internal/handler"
 	"net/http"
 	"os"
 	"time"
 )
 
 func NewServer() *http.Server {
+	wsServer := handler.NewWebServer()
+	wsServer.Run()
 
 	var PORT string
 	if PORT = os.Getenv("PORT"); PORT == "" {

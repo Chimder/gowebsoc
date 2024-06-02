@@ -20,8 +20,8 @@ func NewRouter() http.Handler {
 		AllowedOrigins: []string{"*"},
 	}))
 
-	WebsocketHandler := handler.NewWsHandler()
-	r.Get("/ws", WebsocketHandler.WsConnections)
+	wsServer := handler.NewWebServer()
+	r.Get("/ws", wsServer.WebSocketHandler)
 
 	return r
 }
