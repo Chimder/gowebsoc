@@ -8,11 +8,40 @@ generator db {
   provider = "go run github.com/steebchen/prisma-client-go"
 }
 
-model Post {
+model User {
   id        String    @id @default(cuid())
+  name      String    @unique
+  email     String    @unique
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @default(now()) @map("updated_at")
-  title     String
-  published Boolean
-  descs     String?
+  messages  Message[]
+}
+
+model Server {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  ownerId   String    @default(cuid())
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @map("updated_at")
+  channels  Channel[]
+}
+
+model Channel {
+  id        String    @id @default(cuid())
+  server    Server    @relation(fields: [serverId], references: [id])
+  serverId  String
+  name      String
+  type      String    @default("text")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @map("updated_at")
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  content   String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  channelId String
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @map("updated_at")
 }
