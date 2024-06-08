@@ -10,7 +10,7 @@ data "external_schema" "gorm" {
   ]
 }
 
-env "gorm" {
+env "lol" {
   src = data.external_schema.gorm.url
   dev = "docker://postgres/15"
 
