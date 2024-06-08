@@ -7,7 +7,7 @@ import (
 type User struct {
 	ID   string
 	Conn *websocket.Conn
-	Send chan string
+	Send chan []byte
 }
 
 type EventMessage struct {
@@ -15,10 +15,3 @@ type EventMessage struct {
 	Data  interface{} `json:"data"`
 }
 
-// func (e *EventMessage) DecodeData(target interface{}) error {
-// 	dataBytes, err := json.Marshal(e.Data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return json.Unmarshal(dataBytes, target)
-// }

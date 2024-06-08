@@ -4,10 +4,6 @@ datasource db {
   url      = env("DB_URL")
 }
 
-generator db {
-  provider = "go run github.com/steebchen/prisma-client-go"
-}
-
 model User {
   id        String    @id @default(cuid())
   name      String    @unique
@@ -17,19 +13,19 @@ model User {
   messages  Message[]
 }
 
-model Server {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  ownerId   String    @default(cuid())
-  createdAt DateTime? @default(now()) @map("created_at")
-  updatedAt DateTime? @default(now()) @map("updated_at")
-  channels  Channel[]
+model Channel {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  // ownerId     String
+  createdAt   DateTime?    @default(now()) @map("created_at")
+  updatedAt   DateTime?    @default(now()) @map("updated_at")
+  podChannels Podchannel[]
 }
 
-model Channel {
+model Podchannel {
   id        String    @id @default(cuid())
-  server    Server    @relation(fields: [serverId], references: [id])
-  serverId  String
+  channel   Channel   @relation(fields: [channelID], references: [id])
+  channelID String
   name      String
   type      String    @default("text")
   createdAt DateTime? @default(now()) @map("created_at")
