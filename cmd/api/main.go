@@ -9,22 +9,20 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	server := server.NewServer()
+	srv := server.NewServer()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Error listen server: %v\n", err)
 		}
 	}()
-	fmt.Printf("Server is listening on port %s...\n", server.Addr)
+	fmt.Printf("Server is listening on port %s...\n", srv.Addr())
 
 	<-sigCh
 	fmt.Println("Shutting down the server...")
@@ -32,9 +30,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(ctx); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}
 
+	srv.Close()
 	fmt.Println("Server gracefully stopped")
 }

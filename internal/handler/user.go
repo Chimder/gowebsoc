@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"goSql/model"
 	"goSql/utils"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -26,18 +26,16 @@ func NewUser(db *sqlx.DB) *UserH {
 }
 
 func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
-
-	channel := Channel{
-		ID:      uuid.NewString(),
-		Name:    "Football",
-		OwnerID: "lol",
-	}
-
-	query := `INSERT INTO channels (id, name, owner_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *`
-	err := u.db.Get(&channel, query, channel.ID, channel.Name, channel.OwnerID)
+	channel := model.Channel{Name: "football"}
+	query := `INSERT INTO channels (name, created_at, updated_at) VALUES ($1, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
+	err := u.db.Get(&channel, query, channel.Name)
 	if err != nil {
 		utils.WriteError(w, 500, "Create channel err:", err)
 		return
 	}
 
+	if err := utils.WriteJSON(w, 200, channel); err != nil {
+		utils.WriteError(w, 500, "Create channel write", err)
+		return
+	}
 }
