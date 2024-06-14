@@ -2,9 +2,12 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
+	"time"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, v interface{}) error {
@@ -44,4 +47,37 @@ func ParseJSON(r *http.Request, v interface{}) error {
 		return fmt.Errorf("error decoding JSON: %w", err)
 	}
 	return nil
+}
+
+type BaseModel struct {
+	ID        uint       `db:"id"`
+	CreatedAt time.Time  `db:"created_at"`
+	UpdatedAt time.Time  `db:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at,omitempty"`
+}
+
+// StripGormModel копирует поля из структуры с gorm.Model в структуру без него
+func StripGormModel(input interface{}) (interface{}, error) {
+	val := reflect.ValueOf(input)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		return nil, errors.New("input must be a struct")
+	}
+
+	typ := val.Type()
+	output := reflect.New(typ).Elem()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+		if fieldType.Anonymous && fieldType.Type == reflect.TypeOf(BaseModel{}) {
+			continue
+		}
+		output.Field(i).Set(field)
+	}
+
+	return output.Interface(), nil
 }

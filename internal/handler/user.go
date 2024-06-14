@@ -3,6 +3,7 @@ package handler
 import (
 	"goSql/model"
 	"goSql/utils"
+	"log"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -26,8 +27,8 @@ func NewUser(db *sqlx.DB) *UserH {
 }
 
 func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
-	channel := model.Channel{Name: "football"}
-	query := `INSERT INTO channels (name, created_at, updated_at) VALUES ($1, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
+	channel := model.Channel{Name: "Games"}
+	query := `INSERT INTO channels (name, created_at, updated_at) VALUES ($1, NOW(), NOW())`
 	err := u.db.Get(&channel, query, channel.Name)
 	if err != nil {
 		utils.WriteError(w, 500, "Create channel err:", err)
@@ -36,6 +37,55 @@ func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := utils.WriteJSON(w, 200, channel); err != nil {
 		utils.WriteError(w, 500, "Create channel write", err)
+		return
+	}
+}
+func (u *UserH) GetChannel(w http.ResponseWriter, r *http.Request) {
+	var channel model.Channel
+
+	query := `SELECT * FROM "channels" WHERE id=$1`
+	err := u.db.Get(&channel, query, 1)
+	log.Println("chanel:", channel)
+
+	if err != nil {
+		utils.WriteError(w, 500, "Create podchannel err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, channel); err != nil {
+		utils.WriteError(w, 500, "Create podchannel write", err)
+		return
+	}
+}
+
+func (u *UserH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
+	podchannel := model.Podchannel{Name: "Persna", Type: "ver 5", ChannelID: 4}
+
+	query := `INSERT INTO podchannels (name, type, channel_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())`
+	err := u.db.Get(&podchannel, query, podchannel.Name, podchannel.Type, podchannel.ChannelID)
+	if err != nil {
+		utils.WriteError(w, 500, "Create podchannel err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, podchannel); err != nil {
+		utils.WriteError(w, 500, "Create podchannel write", err)
+		return
+	}
+}
+
+func (u *UserH) GetPodchannel(w http.ResponseWriter, r *http.Request) {
+	var podchannel model.Podchannel
+	query := `SELECT * FROM "podchannels"`
+	err := u.db.Get(&podchannel, query)
+
+	if err != nil {
+		utils.WriteError(w, 500, "Create podchannel err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, podchannel); err != nil {
+		utils.WriteError(w, 500, "Create podchannel write", err)
 		return
 	}
 }

@@ -32,6 +32,9 @@ func NewRouter(db *sqlx.DB) http.Handler {
 	r.Get("/ws", wsServer.WsConnections)
 
 	r.Get("/channel/create", userHandler.Create)
+	r.Get("/channel/get", userHandler.GetChannel)
+	r.Get("/podchannel/create", userHandler.CreatePodchannel)
+	r.Get("/podchannel/get", userHandler.GetPodchannel)
 
 	return r
 }
