@@ -3,7 +3,6 @@ package handler
 import (
 	"goSql/model"
 	"goSql/utils"
-	"log"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -42,15 +41,24 @@ func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
 }
 func (u *UserH) GetChannel(w http.ResponseWriter, r *http.Request) {
 	var channel model.Channel
+	var podchannels []model.Podchannel
 
 	query := `SELECT * FROM "channels" WHERE id=$1`
-	err := u.db.Get(&channel, query, 1)
-	log.Println("chanel:", channel)
+	// podquery := `SELECT * FROM "podchannels" WHERE "channel_id"=$1`
+	podquery := `SELECT id, name, type, created_at, updated_at, deleted_at, channel_id FROM "podchannels" WHERE channel_id=$1`
 
+	err := u.db.Get(&channel, query, 4)
 	if err != nil {
-		utils.WriteError(w, 500, "Create podchannel err:", err)
+		utils.WriteError(w, 500, "Get channel err:", err)
 		return
 	}
+
+	err = u.db.Select(&podchannels, podquery, 4)
+	if err != nil {
+		utils.WriteError(w, 500, "Get podchannels err:", err)
+		return
+	}
+	channel.PodChannels = podchannels
 
 	if err := utils.WriteJSON(w, 200, channel); err != nil {
 		utils.WriteError(w, 500, "Create podchannel write", err)
