@@ -91,3 +91,43 @@ func (q *Queries) GetChannel(ctx context.Context, id int32) (GetChannelRow, erro
 	)
 	return i, err
 }
+
+const getPodchannels = `-- name: GetPodchannels :many
+SELECT id, name, type, created_at, updated_at, channel_id FROM podchannels WHERE channel_id = $1
+`
+
+type GetPodchannelsRow struct {
+	ID        int32
+	Name      string
+	Type      string
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+	ChannelID int32
+}
+
+func (q *Queries) GetPodchannels(ctx context.Context, channelID int32) ([]GetPodchannelsRow, error) {
+	rows, err := q.db.Query(ctx, getPodchannels, channelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPodchannelsRow
+	for rows.Next() {
+		var i GetPodchannelsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ChannelID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

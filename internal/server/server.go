@@ -2,17 +2,19 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"goSql/internal/db"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
 )
 
 type Server struct {
 	httpServer *http.Server
-	db         *sql.DB
+	db         *pgxpool.Pool
 }
 
 func NewServer() *Server {
@@ -25,7 +27,6 @@ func NewServer() *Server {
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}
-	defer database.Close()
 
 	httpServer := &http.Server{
 		Addr:         ":" + PORT,

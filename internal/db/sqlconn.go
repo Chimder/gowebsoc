@@ -1,31 +1,38 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"goSql/internal/config"
 	"log"
+	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 // DBConn establishes a connection to the database
-func DBConn() (*sql.DB, error) {
+func DBConn() (*pgxpool.Pool, error) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Error loading .env file")
 	}
 
-	db, err := sql.Open("postgres", config.LoadEnv().DB_URL)
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = config.LoadEnv().DB_URL
+	}
+
+	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
-		log.Fatal("Unable to connect to database:", err)
+		log.Fatal("Unable to parse database URL:", err)
 		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
-		log.Fatal("Unable to ping the database:", err)
+	dbpool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		log.Fatal("Unable to create database pool:", err)
 		return nil, err
 	}
 
-	return db, nil
+	return dbpool, nil
 }

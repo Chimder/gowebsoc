@@ -1,22 +1,24 @@
 package server
 
 import (
-	"database/sql"
 	"goSql/internal/handler"
-	"goSql/sql/tutorial"
+	"goSql/sqlc/tutorial"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
 )
 
 type Router struct {
-	db *sql.DB
+	// db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewRouter(db *sql.DB) http.Handler {
+func NewRouter(db *pgxpool.Pool) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{

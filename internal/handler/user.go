@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"goSql/internal/db"
+	"goSql/sqlc/tutorial"
 	"goSql/utils"
 	"net/http"
 
@@ -10,20 +10,12 @@ import (
 )
 
 type UserH struct {
-	q *db.Queries
+	q *tutorial.Queries
 }
 
-func NewUser(q *db.Queries) *UserH {
+func NewUser(q *tutorial.Queries) *UserH {
 	return &UserH{q: q}
 }
-
-// type UserH struct {
-// 	q *
-// }
-
-// func NewUser(db *sql.DB) *UserH {
-// 	return &UserH{db: db}
-// }
 
 func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
@@ -62,7 +54,7 @@ func (u *UserH) GetChannel(w http.ResponseWriter, r *http.Request) {
 
 func (u *UserH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	podchannel, err := u.q.CreatePodchannel(ctx, db.CreatePodchannelParams{
+	podchannel, err := u.q.CreatePodchannel(ctx, tutorial.CreatePodchannelParams{
 		Name:      "Persna",
 		Type:      "ver 5",
 		ChannelID: 4,
