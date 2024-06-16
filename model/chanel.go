@@ -6,11 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type body struct {
-	CreatedAt time.Time  `db:"created_at"`
-	UpdatedAt time.Time  `db:"updated_at"`
-	DeletedAt *time.Time `db:"deleted_at"`
-}
 type Timestamps struct {
 	CreatedAt time.Time  `db:"created_at" gorm:"column:created_at"`
 	UpdatedAt time.Time  `db:"updated_at" gorm:"column:updated_at"`

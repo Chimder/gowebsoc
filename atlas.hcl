@@ -1,25 +1,12 @@
-data "external_schema" "gorm" {
-  program = [
-    "go",
-    "run",
-    "-mod=mod",
-    "ariga.io/atlas-provider-gorm",
-    "load",
-    "--path", "./model",
-    "--dialect", "postgres"
-  ]
-}
+env "dev" {
+  url     = "postgres://postgres.brewtfaclndisuqiieoy:7DsShp1,l8Gx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+  dev-url = "docker://postgres"
 
-env "lol" {
-  src = data.external_schema.gorm.url
-  dev = "docker://postgres/15"
-
-  migration {
-    dir = "file://migrations?format=goose"
-  }
   format {
     migrate {
       diff = "{{ sql . \"  \" }}"
     }
   }
+
+  exclude = ["auth", "extensions", "graphql", "graphql_public", "pgbouncer", "pgsodium", "pgsodium_masks", "realtime", "storage", "vault", "atlas_schema_revisions"]
 }

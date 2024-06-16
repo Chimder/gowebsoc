@@ -28,7 +28,7 @@ func main() {
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 
 	// Create a new migrator.
-	migrator := migrate.NewMigrator(db, migrate.NewMigrations())
+	migrator := migrate.NewMigrator(db)
 
 	// Run the migrations.
 	ctx := context.Background()
