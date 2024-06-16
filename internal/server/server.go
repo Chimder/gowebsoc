@@ -2,18 +2,17 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"goSql/internal/db"
 	"log"
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type Server struct {
 	httpServer *http.Server
-	db         *sqlx.DB
+	db         *sql.DB
 }
 
 func NewServer() *Server {
@@ -22,10 +21,11 @@ func NewServer() *Server {
 		PORT = "4000"
 	}
 
-	database, err := db.DBConnection()
+	database, err := db.DBConn()
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}
+	defer database.Close()
 
 	httpServer := &http.Server{
 		Addr:         ":" + PORT,

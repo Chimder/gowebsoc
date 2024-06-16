@@ -1,21 +1,22 @@
 package server
 
 import (
+	"database/sql"
 	"goSql/internal/handler"
+	"goSql/sql/tutorial"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/jmoiron/sqlx"
 )
 
 type Router struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func NewRouter(db *sqlx.DB) http.Handler {
+func NewRouter(db *sql.DB) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -24,8 +25,11 @@ func NewRouter(db *sqlx.DB) http.Handler {
 	//////////////////////
 	wsServer := handler.NewWebServer()
 	wsServer.Run()
+
 	//////////////////////
-	userHandler := handler.NewUser(db)
+
+	query := tutorial.New(db)
+	userHandler := handler.NewUser(query)
 	/////////////////////
 	log.Println("Server Run")
 
