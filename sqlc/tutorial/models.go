@@ -9,34 +9,34 @@ import (
 )
 
 type Channel struct {
-	ID        int32
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	Name      string
+	ID        int32            `json:"id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	Name      string           `json:"name"`
 }
 
 type Message struct {
-	ID           int32
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-	Content      string
-	AuthorID     int32
-	PodchannelID int32
+	ID           int32            `json:"id"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+	Content      string           `json:"content"`
+	AuthorID     int32            `json:"author_id"`
+	PodchannelID int32            `json:"podchannel_id"`
 }
 
 type Podchannel struct {
-	ID        int32
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	Name      string
-	Type      string
-	ChannelID int32
+	ID        int32            `json:"id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	Name      string           `json:"name"`
+	Type      string           `json:"type"`
+	ChannelID int32            `json:"channel_id"`
 }
 
 type User struct {
-	ID        int32
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	Name      string
-	Email     string
+	ID        int32            `json:"id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	Name      string           `json:"name"`
+	Email     string           `json:"email"`
 }

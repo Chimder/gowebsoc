@@ -1,0 +1,14 @@
+output = "db/models"
+wipe = true
+pkgname = "dbmodels"
+add-global-variants = true
+add-enum-types = true
+
+[psql]
+host = "aws-0-eu-central-1.pooler.supabase.com"
+port = 6543
+user = "postgres.dmjrovusmlsbptarikay"
+pass = "AhBZe581IuyY"
+dbname = "postgres"
+schema = "public"
+sslmode = "require"

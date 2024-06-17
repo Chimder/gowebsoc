@@ -8,13 +8,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Server struct {
 	httpServer *http.Server
-	db         *pgxpool.Pool
+	db         *sqlx.DB
 }
 
 func NewServer() *Server {
@@ -23,14 +23,14 @@ func NewServer() *Server {
 		PORT = "4000"
 	}
 
-	database, err := db.DBConn()
+	db, err := db.DBConn()
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}
 
 	httpServer := &http.Server{
 		Addr:         ":" + PORT,
-		Handler:      NewRouter(database),
+		Handler:      NewRouter(db),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  time.Minute,
@@ -38,7 +38,7 @@ func NewServer() *Server {
 
 	return &Server{
 		httpServer: httpServer,
-		db:         database,
+		db:         db,
 	}
 }
 

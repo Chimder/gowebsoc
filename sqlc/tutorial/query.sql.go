@@ -17,10 +17,10 @@ RETURNING id, name, created_at, updated_at
 `
 
 type CreateChannelRow struct {
-	ID        int32
-	Name      string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
 func (q *Queries) CreateChannel(ctx context.Context, name string) (CreateChannelRow, error) {
@@ -41,18 +41,18 @@ RETURNING id, name, type, created_at, updated_at, channel_id
 `
 
 type CreatePodchannelParams struct {
-	Name      string
-	Type      string
-	ChannelID int32
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	ChannelID int32  `json:"channel_id"`
 }
 
 type CreatePodchannelRow struct {
-	ID        int32
-	Name      string
-	Type      string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	ChannelID int32
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	Type      string           `json:"type"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ChannelID int32            `json:"channel_id"`
 }
 
 func (q *Queries) CreatePodchannel(ctx context.Context, arg CreatePodchannelParams) (CreatePodchannelRow, error) {
@@ -74,10 +74,10 @@ SELECT id, name, created_at, updated_at FROM channels WHERE id = $1
 `
 
 type GetChannelRow struct {
-	ID        int32
-	Name      string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
 func (q *Queries) GetChannel(ctx context.Context, id int32) (GetChannelRow, error) {
@@ -97,12 +97,12 @@ SELECT id, name, type, created_at, updated_at, channel_id FROM podchannels WHERE
 `
 
 type GetPodchannelsRow struct {
-	ID        int32
-	Name      string
-	Type      string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	ChannelID int32
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	Type      string           `json:"type"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ChannelID int32            `json:"channel_id"`
 }
 
 func (q *Queries) GetPodchannels(ctx context.Context, channelID int32) ([]GetPodchannelsRow, error) {
