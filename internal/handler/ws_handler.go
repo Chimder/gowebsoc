@@ -102,10 +102,13 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
+		log.Println("all", eventMessage)
+		log.Println("event", eventMessage.Event)
+		log.Println("mess", eventMessage.Data)
+
 		ws.broadcast <- &EventMessage{
 			Event: "message",
 			Data:  eventMessage.Data,
-			// UserID: user.ID,
 		}
 	}
 }
