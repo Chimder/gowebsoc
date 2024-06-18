@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-//	@title			LilDiscord Api
-//	@version		1.0
-//	@description	websocket chats
-//	@BasePath		/
+// @title			LilDiscord Api
+// @version		1.0
+// @description	websocket chats
+// @BasePath		/
 func main() {
 	srv := server.NewServer()
 

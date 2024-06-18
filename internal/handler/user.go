@@ -1,24 +1,52 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
 	"goSql/models"
 	"goSql/utils"
+	"log"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 type UserH struct {
-	db *sqlx.DB
+	pgdb *sqlx.DB
+	rdb  *redis.Client
 }
 
-func NewUser(db *sqlx.DB) *UserH {
-	return &UserH{db: db}
+func NewUser(pgdb *sqlx.DB, rdb *redis.Client) *UserH {
+	return &UserH{pgdb: pgdb, rdb: rdb}
 }
+func (u *UserH) ProcessMessages() {
+	ctx := context.Background()
+	for {
+		msgData, err := u.rdb.BLPop(ctx, 0, "messageQueue").Result()
+		if err != nil {
+			log.Printf("Redis pop error: %s\n", err)
+			continue
+		}
 
-type Userr struct {
-	db string
+		if len(msgData) < 2 {
+			continue
+		}
+
+		var message models.Message
+		if err := json.Unmarshal([]byte(msgData[1]), &message); err != nil {
+			log.Printf("Unmarshal error: %s\n", err)
+			continue
+		}
+		log.Println("REDIS<>ESS", message)
+
+		_, err = u.pgdb.ExecContext(ctx, "INSERT INTO messages (content, author_id, podchannel_id, created_at) VALUES ($1, $2, $3, NOW())",
+			message.Content, message.AuthorID, message.PodchannelID)
+		if err != nil {
+			log.Printf("DB insert error: %s\n", err)
+		}
+	}
 }
 
 // @Summary		Create Channel
@@ -36,7 +64,7 @@ func (u *UserH) CreateChannel(w http.ResponseWriter, r *http.Request) {
 
 	query := `INSERT INTO channels (name, created_at, updated_at)
 	 VALUES ($1, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
-	err := u.db.Get(&channel, query, name)
+	err := u.pgdb.Get(&channel, query, name)
 	if err != nil {
 		utils.WriteError(w, 500, "Create channel err:", err)
 		return
@@ -60,7 +88,7 @@ func (u *UserH) GetChannels(w http.ResponseWriter, r *http.Request) {
 	var channels []models.Channel
 
 	query := `SELECT * FROM channels`
-	err := u.db.Select(&channels, query)
+	err := u.pgdb.Select(&channels, query)
 	if err != nil {
 		utils.WriteError(w, 500, "Get channels err:", err)
 		return
@@ -93,14 +121,14 @@ func (u *UserH) GetChannel(w http.ResponseWriter, r *http.Request) {
 	var podchannels []models.Podchannel
 
 	query := `SELECT * FROM channels WHERE id=$1`
-	err := u.db.Get(&channel, query, channelID)
+	err := u.pgdb.Get(&channel, query, channelID)
 	if err != nil {
 		utils.WriteError(w, 500, "Get channel err:", err)
 		return
 	}
 
 	podquery := `SELECT * FROM podchannels WHERE channel_id=$1`
-	err = u.db.Select(&podchannels, podquery, channel.ID)
+	err = u.pgdb.Select(&podchannels, podquery, channel.ID)
 	if err != nil {
 		utils.WriteError(w, 500, "Get podchannels err:", err)
 		return
@@ -128,7 +156,7 @@ func (u *UserH) GetPodchannels(w http.ResponseWriter, r *http.Request) {
 
 	var podchannel []models.Podchannel
 	query := `SELECT * FROM podchannels WHERE channel_id=$1`
-	err := u.db.Select(&podchannel, query, podchannelID)
+	err := u.pgdb.Select(&podchannel, query, podchannelID)
 
 	if err != nil {
 		utils.WriteError(w, 500, "Get podchannel err:", err)
@@ -160,7 +188,7 @@ func (u *UserH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
 
 	query := `INSERT INTO podchannels (name, types, channel_id, created_at, updated_at)
 	 VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
-	err := u.db.Get(&podchannel, query, name, types, channelID)
+	err := u.pgdb.Get(&podchannel, query, name, types, channelID)
 	if err != nil {
 		utils.WriteError(w, 500, "Create podchannel err:", err)
 		return

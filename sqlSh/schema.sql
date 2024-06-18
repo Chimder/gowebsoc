@@ -33,3 +33,6 @@ CREATE TABLE messages (
     FOREIGN KEY (author_id) REFERENCES users(id),
     FOREIGN KEY (podchannel_id) REFERENCES podchannels(id)
 );
+
+CREATE INDEX idx_messages_podchannel_id ON messages(podchannel_id);
+CREATE INDEX idx_messages_author_id ON messages(author_id);

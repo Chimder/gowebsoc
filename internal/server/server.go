@@ -12,11 +12,13 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 type Server struct {
 	httpServer *http.Server
-	db         *sqlx.DB
+	pgdb       *sqlx.DB
+	rdb        *redis.Client
 }
 
 func NewServer() *Server {
@@ -25,14 +27,20 @@ func NewServer() *Server {
 		PORT = "4000"
 	}
 
-	db, err := db.DBConn()
+	pgdb, err := db.DBConn()
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}
+	opt, err := db.RedisCon()
+	if err != nil {
+		log.Fatal("Unable to connect to redis:", err)
+	}
+
+	rdb := redis.NewClient(opt)
 
 	httpServer := &http.Server{
 		Addr:         ":" + PORT,
-		Handler:      NewRouter(db),
+		Handler:      NewRouter(pgdb, rdb),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  time.Minute,
@@ -40,13 +48,17 @@ func NewServer() *Server {
 
 	return &Server{
 		httpServer: httpServer,
-		db:         db,
+		pgdb:       pgdb,
+		rdb:        rdb,
 	}
 }
 
 func (s *Server) Close() {
-	if s.db != nil {
-		s.db.Close()
+	if s.pgdb != nil {
+		s.pgdb.Close()
+	}
+	if s.rdb != nil {
+		s.rdb.Close()
 	}
 }
 

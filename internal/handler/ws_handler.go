@@ -1,15 +1,15 @@
 package handler
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 )
-
-type WsHandler struct{}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -23,6 +23,7 @@ type Server struct {
 	register   chan *User
 	unregister chan *User
 	mu         sync.Mutex
+	rdb        *redis.Client
 }
 
 func NewWebServer() *Server {
@@ -55,20 +56,27 @@ func (ws *Server) Run() {
 			case message := <-ws.broadcast:
 				ws.mu.Lock()
 				for _, user := range ws.users {
-					if err := user.Conn.WriteJSON(message); err != nil {
-						log.Printf("Write error: %s\n", err)
+					if user.PodchannelID == message.PodchannelID {
+						if err := user.Conn.WriteJSON(message); err != nil {
+							log.Printf("Write error: %s\n", err)
+						}
 					}
 				}
 				ws.mu.Unlock()
+				if err := ws.rdb.RPush(context.Background(), "messageQueue", message).Err(); err != nil {
+					log.Printf("Redis push error: %s\n", err)
+				}
+
 			}
 		}
 	}()
+	go processMessages(context.Background(), ws.pgdb, ws.redisClient)
 }
 
 func (ws *Server) broadcastUserList() {
 	message := EventMessage{
-		Event: "user_list",
-		Data:  map[string]int{"connected_users": len(ws.users)},
+		Event: "users",
+		Data:  map[string]int{"users": len(ws.users)},
 	}
 
 	for _, user := range ws.users {
@@ -102,13 +110,19 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		log.Println("all", eventMessage)
-		log.Println("event", eventMessage.Event)
-		log.Println("mess", eventMessage.Data)
+		log.Println("MESS", eventMessage)
+		// Handle setting channel and podchannel
+		if eventMessage.Event == "join_podchannel" {
+			user.ChannelID = eventMessage.ChannelID
+			user.PodchannelID = eventMessage.PodchannelID
+			continue
+		}
 
 		ws.broadcast <- &EventMessage{
-			Event: "message",
-			Data:  eventMessage.Data,
+			Event:        eventMessage.Event,
+			Data:         eventMessage.Data,
+			ChannelID:    user.ChannelID,
+			PodchannelID: user.PodchannelID,
 		}
 	}
 }

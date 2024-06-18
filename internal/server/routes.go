@@ -9,14 +9,11 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-type Router struct {
-	db *sqlx.DB
-}
-
-func NewRouter(db *sqlx.DB) http.Handler {
+func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -29,7 +26,7 @@ func NewRouter(db *sqlx.DB) http.Handler {
 	wsServer.Run()
 
 	//////////////////////
-	userHandler := handler.NewUser(db)
+	userHandler := handler.NewUser(pgdb, rdb)
 
 	r.Get("/ws", wsServer.WsConnections)
 
