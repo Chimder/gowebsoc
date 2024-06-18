@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+
+	_ "goSql/docs"
 	"goSql/internal/db"
 	"log"
 	"net/http"

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	_ "goSql/docs"
 	"goSql/internal/server"
 	"net/http"
 	"os"
@@ -11,6 +12,10 @@ import (
 	"time"
 )
 
+//		@title			Manka Api
+//		@version		1.0
+//		@description	Manga search
+//	 @BasePath	/
 func main() {
 	srv := server.NewServer()
 

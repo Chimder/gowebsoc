@@ -5,6 +5,7 @@ import (
 	"goSql/utils"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -17,10 +18,11 @@ func NewUser(db *sqlx.DB) *UserH {
 	return &UserH{db: db}
 }
 
-func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
+func (u *UserH) CreateChannel(w http.ResponseWriter, r *http.Request) {
 	channel := models.Channel{Name: "football"}
 
-	query := `INSERT INTO channels (name, created_at, updated_at) VALUES ($1, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
+	query := `INSERT INTO channels (name, created_at, updated_at)
+	 VALUES ($1, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
 	err := u.db.Get(&channel, query, channel.Name)
 	if err != nil {
 		utils.WriteError(w, 500, "Create channel err:", err)
@@ -33,41 +35,64 @@ func (u *UserH) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (u *UserH) GetChannels(w http.ResponseWriter, r *http.Request) {
+	var channels []models.Channel
+
+	query := `SELECT * FROM channels`
+	err := u.db.Select(&channels, query)
+	if err != nil {
+		utils.WriteError(w, 500, "Get channels err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, channels); err != nil {
+		utils.WriteError(w, 500, "Get channels write", err)
+		return
+	}
+}
+
 type ChannelWithPodchannels struct {
 	Channel     models.Channel      `json:"channel"`
 	Podchannels []models.Podchannel `json:"podchannels"`
 }
 
 func (u *UserH) GetChannel(w http.ResponseWriter, r *http.Request) {
+	channelID := chi.URLParam(r, "channelID")
+
 	var channel models.Channel
-	var podchannel []models.Podchannel
+	var podchannels []models.Podchannel
 
-	query := `SELECT * FROM "channels" WHERE id=$1`
-	podquery := `SELECT * FROM "podchannels" WHERE channel_id=$1`
-	err := u.db.Get(&channel, query, 2)
+	query := `SELECT * FROM channels WHERE id=$1`
+	err := u.db.Get(&channel, query, channelID)
 	if err != nil {
-		utils.WriteError(w, 500, "Create podchannel err:", err)
-		return
-	}
-	err = u.db.Select(&podchannel, podquery, channel.ID)
-	if err != nil {
-		utils.WriteError(w, 500, "Create podchannel err:", err)
+		utils.WriteError(w, 500, "Get channel err:", err)
 		return
 	}
 
-	channelWithPod := ChannelWithPodchannels{Channel: channel, Podchannels: podchannel}
+	podquery := `SELECT * FROM podchannels WHERE channel_id=$1`
+	err = u.db.Select(&podchannels, podquery, channel.ID)
+	if err != nil {
+		utils.WriteError(w, 500, "Get podchannels err:", err)
+		return
+	}
+
+	channelWithPod := ChannelWithPodchannels{Channel: channel, Podchannels: podchannels}
 
 	if err := utils.WriteJSON(w, 200, channelWithPod); err != nil {
-		utils.WriteError(w, 500, "Create podchannel write", err)
+		utils.WriteError(w, 500, "Get channel write", err)
 		return
 	}
 }
 
 func (u *UserH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
-	podchannel := models.Podchannel{Name: "Barsa", Type: "team", ChannelID: 2}
+	podchannel := models.Podchannel{
+		Name:      "",
+		Type:      "",
+		ChannelID: 0,
+	}
 
-	// Выполнение запроса с возвращением id, created_at и updated_at
-	query := `INSERT INTO podchannels (name, type, channel_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
+	query := `INSERT INTO podchannels (name, type, channel_id, created_at, updated_at)
+	 VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, created_at, updated_at`
 	err := u.db.Get(&podchannel, query, podchannel.Name, podchannel.Type, podchannel.ChannelID)
 	if err != nil {
 		utils.WriteError(w, 500, "Create podchannel err:", err)
@@ -81,17 +106,35 @@ func (u *UserH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserH) GetPodchannel(w http.ResponseWriter, r *http.Request) {
+	podchannelID := chi.URLParam(r, "podchannelID")
+
 	var podchannel models.Podchannel
-	query := `SELECT * FROM "podchannels"`
-	err := u.db.Get(&podchannel, query)
+	query := `SELECT * FROM podchannels WHERE id=$1`
+	err := u.db.Get(&podchannel, query, podchannelID)
 
 	if err != nil {
-		utils.WriteError(w, 500, "Create podchannel err:", err)
+		utils.WriteError(w, 500, "Get podchannel err:", err)
 		return
 	}
 
 	if err := utils.WriteJSON(w, 200, podchannel); err != nil {
-		utils.WriteError(w, 500, "Create podchannel write", err)
+		utils.WriteError(w, 500, "Get podchannel write", err)
+		return
+	}
+}
+
+func (u *UserH) GetPodchannels(w http.ResponseWriter, r *http.Request) {
+	var podchannels []models.Podchannel
+	query := `SELECT * FROM podchannels`
+	err := u.db.Select(&podchannels, query)
+
+	if err != nil {
+		utils.WriteError(w, 500, "Get podchannels err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, podchannels); err != nil {
+		utils.WriteError(w, 500, "Get podchannels write", err)
 		return
 	}
 }
