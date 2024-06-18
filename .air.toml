@@ -1,13 +1,16 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
 
 [build]
-  # cmd - команда для сборки проекта
-  cmd = "go build -o ./tmp/main .cmd/api/main.go"
-  # bin - путь к исполняемому файлу
+  args_bin = []
   bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ./cmd/api"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
   exclude_regex = ["_test.go"]
+  exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
   include_dir = []
@@ -37,6 +40,11 @@
 
 [misc]
   clean_on_exit = false
+
+[proxy]
+  app_port = 0
+  enabled = false
+  proxy_port = 0
 
 [screen]
   clear_on_rebuild = false

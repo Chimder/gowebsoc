@@ -22,14 +22,15 @@ type Userr struct {
 	db string
 }
 
-// @Summary      List accounts
-// @Description  get accounts
+// ShowAccount godoc
+// @Summary      Show an account
+// @Description  get string by ID
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
-// @Param        q    query     string  false  "name search by q"  Format(email)
-// @Success      200  {array}   model.User
-// @Router       /accounts [get]
+// @Param        id   path      int  true  "Account ID"
+// @Success      200  {object}  Userr
+// @Router       /channel/create [post]
 func (u *UserH) CreateChannel(w http.ResponseWriter, r *http.Request) {
 	channel := models.Channel{Name: "football"}
 
