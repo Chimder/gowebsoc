@@ -1,21 +1,136 @@
 basePath: /
 definitions:
-  handler.Userr:
+  handler.ChannelWithPodchannels:
+    properties:
+      channel:
+        $ref: '#/definitions/models.Channel'
+      podchannels:
+        items:
+          $ref: '#/definitions/models.Podchannel'
+        type: array
+    type: object
+  models.Channel:
+    properties:
+      created_at:
+        description: created_at
+        type: string
+      id:
+        description: id
+        type: integer
+      name:
+        description: name
+        type: string
+      updated_at:
+        description: updated_at
+        type: string
+    type: object
+  models.Podchannel:
+    properties:
+      channel_id:
+        description: channel_id
+        type: integer
+      created_at:
+        description: created_at
+        type: string
+      id:
+        description: id
+        type: integer
+      name:
+        description: name
+        type: string
+      type:
+        description: type
+        type: string
+      updated_at:
+        description: updated_at
+        type: string
     type: object
 info:
   contact: {}
-  description: LOXXX search
-  title: Manka Api
+  description: websocket chats
+  title: LilDiscord Api
   version: "1.0"
 paths:
+  /channel:
+    get:
+      consumes:
+      - application/json
+      description: Get one channel
+      operationId: get-channel
+      parameters:
+      - description: ID of the channel
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ChannelWithPodchannels'
+      summary: Get one channel
+      tags:
+      - Channel
   /channel/create:
     post:
       consumes:
       - application/json
-      description: get string by ID
+      description: Create Channel
+      operationId: create-channel
       parameters:
-      - description: Account ID
-        in: path
+      - description: Name of Channel
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Channel'
+      summary: Create Channel
+      tags:
+      - Channel
+  /channels:
+    get:
+      consumes:
+      - application/json
+      description: Get channels
+      operationId: get-channels
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Channel'
+            type: array
+      summary: Get channels
+      tags:
+      - Channel
+  /podchannel/create:
+    post:
+      consumes:
+      - application/json
+      description: Create one podchannel
+      operationId: create-podchannel
+      parameters:
+      - description: Name of the podchannel
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: type of the podchannel
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: channel of the podchannel
+        in: query
         name: id
         required: true
         type: integer
@@ -25,8 +140,32 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.Userr'
-      summary: Show an account
+            $ref: '#/definitions/handler.ChannelWithPodchannels'
+      summary: Create one podchannel
       tags:
-      - accounts
+      - PodChannel
+  /podchannels:
+    get:
+      consumes:
+      - application/json
+      description: Get podchannel
+      operationId: get-podchannel
+      parameters:
+      - description: ID of the podchannel
+        in: query
+        name: channelId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Podchannel'
+            type: array
+      summary: Get podchannel
+      tags:
+      - PodChannel
 swagger: "2.0"

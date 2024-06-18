@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/channel/create": {
-            "post": {
-                "description": "get string by ID",
+        "/channel": {
+            "get": {
+                "description": "Get one channel",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,15 +25,16 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Channel"
                 ],
-                "summary": "Show an account",
+                "summary": "Get one channel",
+                "operationId": "get-channel",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Account ID",
+                        "type": "string",
+                        "description": "ID of the channel",
                         "name": "id",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -41,7 +42,149 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.Userr"
+                            "$ref": "#/definitions/handler.ChannelWithPodchannels"
+                        }
+                    }
+                }
+            }
+        },
+        "/channel/create": {
+            "post": {
+                "description": "Create Channel",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Create Channel",
+                "operationId": "create-channel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of Channel",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Channel"
+                        }
+                    }
+                }
+            }
+        },
+        "/channels": {
+            "get": {
+                "description": "Get channels",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Get channels",
+                "operationId": "get-channels",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Channel"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/podchannel/create": {
+            "post": {
+                "description": "Create one podchannel",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PodChannel"
+                ],
+                "summary": "Create one podchannel",
+                "operationId": "create-podchannel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the podchannel",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "type of the podchannel",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "channel of the podchannel",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ChannelWithPodchannels"
+                        }
+                    }
+                }
+            }
+        },
+        "/podchannels": {
+            "get": {
+                "description": "Get podchannel",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PodChannel"
+                ],
+                "summary": "Get podchannel",
+                "operationId": "get-podchannel",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the podchannel",
+                        "name": "channelId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Podchannel"
+                            }
                         }
                     }
                 }
@@ -49,8 +192,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.Userr": {
-            "type": "object"
+        "handler.ChannelWithPodchannels": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "$ref": "#/definitions/models.Channel"
+                },
+                "podchannels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Podchannel"
+                    }
+                }
+            }
+        },
+        "models.Channel": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "created_at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "updated_at",
+                    "type": "string"
+                }
+            }
+        },
+        "models.Podchannel": {
+            "type": "object",
+            "properties": {
+                "channel_id": {
+                    "description": "channel_id",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "created_at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "type",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "updated_at",
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -61,8 +265,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Manka Api",
-	Description:      "LOXXX search",
+	Title:            "LilDiscord Api",
+	Description:      "websocket chats",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

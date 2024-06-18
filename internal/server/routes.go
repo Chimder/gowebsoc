@@ -22,29 +22,28 @@ func NewRouter(db *sqlx.DB) http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
 	}))
+
 	//////////////////////
+
 	wsServer := handler.NewWebServer()
 	wsServer.Run()
 
 	//////////////////////
-
 	userHandler := handler.NewUser(db)
-	/////////////////////
+
 	r.Get("/ws", wsServer.WsConnections)
-	/////////////////////////
-	r.HandleFunc("/yaml", func(w http.ResponseWriter, r *http.Request) {
+
+	r.Get("/yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "docs/swagger.yaml")
 	})
 	r.Mount("/swagger/", httpSwagger.WrapHandler)
 
-	// r.Mount("/swagger", httpSwagger.WrapHandler)
-	//////////////////////////
+	r.Get("/channel", userHandler.GetChannel)
+	r.Get("/channels", userHandler.GetChannels)
 	r.Post("/channel/create", userHandler.CreateChannel)
-	r.Get("/channel/get", userHandler.GetChannels)
-	r.Get("/channel/{channelID}", userHandler.GetChannel)
-	r.Post("/podchannel/create", userHandler.CreatePodchannel)
-	r.Get("/podchannel/{podchannelID}", userHandler.GetPodchannel)
+
 	r.Get("/podchannels", userHandler.GetPodchannels)
+	r.Post("/podchannel/create", userHandler.CreatePodchannel)
 
 	return r
 }

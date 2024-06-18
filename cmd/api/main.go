@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-//	@title			Manka Api
+//	@title			LilDiscord Api
 //	@version		1.0
-//	@description	LOXXX search
+//	@description	websocket chats
 //	@BasePath		/
 func main() {
 	srv := server.NewServer()
