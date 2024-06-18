@@ -18,6 +18,18 @@ func NewUser(db *sqlx.DB) *UserH {
 	return &UserH{db: db}
 }
 
+type Userr struct {
+	db string
+}
+
+// @Summary      List accounts
+// @Description  get accounts
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        q    query     string  false  "name search by q"  Format(email)
+// @Success      200  {array}   model.User
+// @Router       /accounts [get]
 func (u *UserH) CreateChannel(w http.ResponseWriter, r *http.Request) {
 	channel := models.Channel{Name: "football"}
 

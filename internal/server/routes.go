@@ -35,7 +35,9 @@ func NewRouter(db *sqlx.DB) http.Handler {
 	r.HandleFunc("/yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "docs/swagger.yaml")
 	})
-	r.Get("/swag", httpSwagger.WrapHandler)
+	r.Mount("/swagger/", httpSwagger.WrapHandler)
+
+	// r.Mount("/swagger", httpSwagger.WrapHandler)
 	//////////////////////////
 	r.Post("/channel/create", userHandler.CreateChannel)
 	r.Get("/channel/get", userHandler.GetChannels)

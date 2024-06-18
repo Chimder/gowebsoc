@@ -1,8 +1,0 @@
-basePath: /
-info:
-  contact: {}
-  description: Manga search
-  title: Manka Api
-  version: "1.0"
-paths: {}
-swagger: "2.0"
