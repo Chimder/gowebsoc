@@ -13,7 +13,7 @@ type Message struct {
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`       // created_at
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`       // updated_at
 	Content      string    `json:"content" db:"content"`             // content
-	AuthorID     int       `json:"author_id" db:"author_id"`         // author_id
+	AuthorID     string    `json:"author_id" db:"author_id"`         // author_id
 	PodchannelID int       `json:"podchannel_id" db:"podchannel_id"` // podchannel_id
 	// xo fields
 	_exists, _deleted bool
@@ -128,6 +128,74 @@ func (m *Message) Delete(ctx context.Context, db DB) error {
 	return nil
 }
 
+// MessagesByAuthorID retrieves a row from 'public.messages' as a [Message].
+//
+// Generated from index 'idx_messages_author_id'.
+func MessagesByAuthorID(ctx context.Context, db DB, authorID string) ([]*Message, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`id, created_at, updated_at, content, author_id, podchannel_id ` +
+		`FROM public.messages ` +
+		`WHERE author_id = $1`
+	// run
+	logf(sqlstr, authorID)
+	rows, err := db.QueryContext(ctx, sqlstr, authorID)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+	// process
+	var res []*Message
+	for rows.Next() {
+		m := Message{
+			_exists: true,
+		}
+		// scan
+		if err := rows.Scan(&m.ID, &m.CreatedAt, &m.UpdatedAt, &m.Content, &m.AuthorID, &m.PodchannelID); err != nil {
+			return nil, logerror(err)
+		}
+		res = append(res, &m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+	return res, nil
+}
+
+// MessagesByPodchannelID retrieves a row from 'public.messages' as a [Message].
+//
+// Generated from index 'idx_messages_podchannel_id'.
+func MessagesByPodchannelID(ctx context.Context, db DB, podchannelID int) ([]*Message, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`id, created_at, updated_at, content, author_id, podchannel_id ` +
+		`FROM public.messages ` +
+		`WHERE podchannel_id = $1`
+	// run
+	logf(sqlstr, podchannelID)
+	rows, err := db.QueryContext(ctx, sqlstr, podchannelID)
+	if err != nil {
+		return nil, logerror(err)
+	}
+	defer rows.Close()
+	// process
+	var res []*Message
+	for rows.Next() {
+		m := Message{
+			_exists: true,
+		}
+		// scan
+		if err := rows.Scan(&m.ID, &m.CreatedAt, &m.UpdatedAt, &m.Content, &m.AuthorID, &m.PodchannelID); err != nil {
+			return nil, logerror(err)
+		}
+		res = append(res, &m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, logerror(err)
+	}
+	return res, nil
+}
+
 // MessageByID retrieves a row from 'public.messages' as a [Message].
 //
 // Generated from index 'messages_pkey'.
@@ -146,13 +214,6 @@ func MessageByID(ctx context.Context, db DB, id int) (*Message, error) {
 		return nil, logerror(err)
 	}
 	return &m, nil
-}
-
-// User returns the User associated with the [Message]'s (AuthorID).
-//
-// Generated from foreign key 'messages_author_id_fkey'.
-func (m *Message) User(ctx context.Context, db DB) (*User, error) {
-	return UserByID(ctx, db, m.AuthorID)
 }
 
 // Podchannel returns the Podchannel associated with the [Message]'s (PodchannelID).

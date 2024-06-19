@@ -132,7 +132,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "type of the podchannel",
-                        "name": "type",
+                        "name": "types",
                         "in": "query",
                         "required": true
                     },
@@ -149,6 +149,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handler.ChannelWithPodchannels"
+                        }
+                    }
+                }
+            }
+        },
+        "/podchannel/message": {
+            "get": {
+                "description": "mess podchannel",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PodChannel"
+                ],
+                "summary": "Get Messages PodChannel",
+                "operationId": "get-podchannel-message",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "podchannel id",
+                        "name": "podchannel_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "podchannel id",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "podchannel id",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Message"
+                            }
                         }
                     }
                 }
@@ -227,6 +277,35 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "description": "author_id",
+                    "type": "string"
+                },
+                "content": {
+                    "description": "content",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "created_at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "podchannel_id": {
+                    "description": "podchannel_id",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "updated_at",
+                    "type": "string"
+                }
+            }
+        },
         "models.Podchannel": {
             "type": "object",
             "properties": {
@@ -246,8 +325,8 @@ const docTemplate = `{
                     "description": "name",
                     "type": "string"
                 },
-                "type": {
-                    "description": "type",
+                "types": {
+                    "description": "types",
                     "type": "string"
                 },
                 "updated_at": {

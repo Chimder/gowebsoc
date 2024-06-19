@@ -2,12 +2,14 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -23,15 +25,18 @@ type Server struct {
 	register   chan *User
 	unregister chan *User
 	mu         sync.Mutex
+	pgdb       *sqlx.DB
 	rdb        *redis.Client
 }
 
-func NewWebServer() *Server {
+func NewWebServer(pgdb *sqlx.DB, rdb *redis.Client) *Server {
 	return &Server{
 		users:      make(map[string]*User),
 		broadcast:  make(chan *EventMessage),
 		register:   make(chan *User),
 		unregister: make(chan *User),
+		pgdb:       pgdb,
+		rdb:        rdb,
 	}
 }
 
@@ -63,14 +68,21 @@ func (ws *Server) Run() {
 					}
 				}
 				ws.mu.Unlock()
-				if err := ws.rdb.RPush(context.Background(), "messageQueue", message).Err(); err != nil {
+
+				messageData, err := json.Marshal(message)
+				if err != nil {
+					log.Printf("JSON marshal error: %s\n", err)
+					continue
+				}
+				log.Println("MESFD", message)
+
+				if err := ws.rdb.RPush(context.Background(), "messageQueue", messageData).Err(); err != nil {
 					log.Printf("Redis push error: %s\n", err)
 				}
-
 			}
 		}
 	}()
-	go processMessages(context.Background(), ws.pgdb, ws.redisClient)
+	go ProcessMessages(ws.pgdb, ws.rdb)
 }
 
 func (ws *Server) broadcastUserList() {
@@ -123,6 +135,7 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			Data:         eventMessage.Data,
 			ChannelID:    user.ChannelID,
 			PodchannelID: user.PodchannelID,
+			AuthorID:     userID,
 		}
 	}
 }

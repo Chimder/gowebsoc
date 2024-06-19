@@ -22,7 +22,7 @@ func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
 
 	//////////////////////
 
-	wsServer := handler.NewWebServer()
+	wsServer := handler.NewWebServer(pgdb, rdb)
 	wsServer.Run()
 
 	//////////////////////
@@ -41,6 +41,7 @@ func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
 
 	r.Get("/podchannels", userHandler.GetPodchannels)
 	r.Post("/podchannel/create", userHandler.CreatePodchannel)
+	r.Get("/podchannel/message", userHandler.GetPodchannelsMessages)
 
 	return r
 }

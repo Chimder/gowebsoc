@@ -14,7 +14,7 @@ type Podchannel struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"` // updated_at
 	ChannelID int       `json:"channel_id" db:"channel_id"` // channel_id
 	Name      string    `json:"name" db:"name"`             // name
-	Type      string    `json:"type" db:"type"`             // type
+	Types     string    `json:"types" db:"types"`           // types
 	// xo fields
 	_exists, _deleted bool
 }
@@ -40,13 +40,13 @@ func (p *Podchannel) Insert(ctx context.Context, db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO public.podchannels (` +
-		`created_at, updated_at, channel_id, name, type` +
+		`created_at, updated_at, channel_id, name, types` +
 		`) VALUES (` +
 		`$1, $2, $3, $4, $5` +
 		`) RETURNING id`
 	// run
-	logf(sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type)
-	if err := db.QueryRowContext(ctx, sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type).Scan(&p.ID); err != nil {
+	logf(sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types)
+	if err := db.QueryRowContext(ctx, sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types).Scan(&p.ID); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -64,11 +64,11 @@ func (p *Podchannel) Update(ctx context.Context, db DB) error {
 	}
 	// update with composite primary key
 	const sqlstr = `UPDATE public.podchannels SET ` +
-		`created_at = $1, updated_at = $2, channel_id = $3, name = $4, type = $5 ` +
+		`created_at = $1, updated_at = $2, channel_id = $3, name = $4, types = $5 ` +
 		`WHERE id = $6`
 	// run
-	logf(sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type, p.ID)
-	if _, err := db.ExecContext(ctx, sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type, p.ID); err != nil {
+	logf(sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types, p.ID)
+	if _, err := db.ExecContext(ctx, sqlstr, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types, p.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -90,16 +90,16 @@ func (p *Podchannel) Upsert(ctx context.Context, db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO public.podchannels (` +
-		`id, created_at, updated_at, channel_id, name, type` +
+		`id, created_at, updated_at, channel_id, name, types` +
 		`) VALUES (` +
 		`$1, $2, $3, $4, $5, $6` +
 		`)` +
 		` ON CONFLICT (id) DO ` +
 		`UPDATE SET ` +
-		`created_at = EXCLUDED.created_at, updated_at = EXCLUDED.updated_at, channel_id = EXCLUDED.channel_id, name = EXCLUDED.name, type = EXCLUDED.type `
+		`created_at = EXCLUDED.created_at, updated_at = EXCLUDED.updated_at, channel_id = EXCLUDED.channel_id, name = EXCLUDED.name, types = EXCLUDED.types `
 	// run
-	logf(sqlstr, p.ID, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type)
-	if _, err := db.ExecContext(ctx, sqlstr, p.ID, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Type); err != nil {
+	logf(sqlstr, p.ID, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types)
+	if _, err := db.ExecContext(ctx, sqlstr, p.ID, p.CreatedAt, p.UpdatedAt, p.ChannelID, p.Name, p.Types); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -134,7 +134,7 @@ func (p *Podchannel) Delete(ctx context.Context, db DB) error {
 func PodchannelByID(ctx context.Context, db DB, id int) (*Podchannel, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created_at, updated_at, channel_id, name, type ` +
+		`id, created_at, updated_at, channel_id, name, types ` +
 		`FROM public.podchannels ` +
 		`WHERE id = $1`
 	// run
@@ -142,7 +142,7 @@ func PodchannelByID(ctx context.Context, db DB, id int) (*Podchannel, error) {
 	p := Podchannel{
 		_exists: true,
 	}
-	if err := db.QueryRowContext(ctx, sqlstr, id).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt, &p.ChannelID, &p.Name, &p.Type); err != nil {
+	if err := db.QueryRowContext(ctx, sqlstr, id).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt, &p.ChannelID, &p.Name, &p.Types); err != nil {
 		return nil, logerror(err)
 	}
 	return &p, nil

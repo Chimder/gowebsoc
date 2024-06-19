@@ -9,15 +9,16 @@ import (
 type User struct {
 	ID           string
 	Conn         *websocket.Conn
-	ChannelID    string
-	PodchannelID string
+	ChannelID    int
+	PodchannelID int
 }
 
 type EventMessage struct {
 	Event        string      `json:"event"`
 	Data         interface{} `json:"data"`
-	ChannelID    string      `json:"channel_id,omitempty"`
-	PodchannelID string      `json:"podchannel_id,omitempty"`
+	ChannelID    int         `json:"channel_id,omitempty"`
+	PodchannelID int         `json:"podchannel_id,omitempty"`
+	AuthorID     string      `json:"author_id,omitempty"`
 }
 
 type Message struct {

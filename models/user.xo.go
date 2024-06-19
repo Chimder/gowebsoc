@@ -13,7 +13,6 @@ type User struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"` // created_at
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"` // updated_at
 	Name      string    `json:"name" db:"name"`             // name
-	Email     string    `json:"email" db:"email"`           // email
 	// xo fields
 	_exists, _deleted bool
 }
@@ -39,13 +38,13 @@ func (u *User) Insert(ctx context.Context, db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO public.users (` +
-		`created_at, updated_at, name, email` +
+		`created_at, updated_at, name` +
 		`) VALUES (` +
-		`$1, $2, $3, $4` +
+		`$1, $2, $3` +
 		`) RETURNING id`
 	// run
-	logf(sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.Email)
-	if err := db.QueryRowContext(ctx, sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.Email).Scan(&u.ID); err != nil {
+	logf(sqlstr, u.CreatedAt, u.UpdatedAt, u.Name)
+	if err := db.QueryRowContext(ctx, sqlstr, u.CreatedAt, u.UpdatedAt, u.Name).Scan(&u.ID); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -63,11 +62,11 @@ func (u *User) Update(ctx context.Context, db DB) error {
 	}
 	// update with composite primary key
 	const sqlstr = `UPDATE public.users SET ` +
-		`created_at = $1, updated_at = $2, name = $3, email = $4 ` +
-		`WHERE id = $5`
+		`created_at = $1, updated_at = $2, name = $3 ` +
+		`WHERE id = $4`
 	// run
-	logf(sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.Email, u.ID)
-	if _, err := db.ExecContext(ctx, sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.Email, u.ID); err != nil {
+	logf(sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.ID)
+	if _, err := db.ExecContext(ctx, sqlstr, u.CreatedAt, u.UpdatedAt, u.Name, u.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -89,16 +88,16 @@ func (u *User) Upsert(ctx context.Context, db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO public.users (` +
-		`id, created_at, updated_at, name, email` +
+		`id, created_at, updated_at, name` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
+		`$1, $2, $3, $4` +
 		`)` +
 		` ON CONFLICT (id) DO ` +
 		`UPDATE SET ` +
-		`created_at = EXCLUDED.created_at, updated_at = EXCLUDED.updated_at, name = EXCLUDED.name, email = EXCLUDED.email `
+		`created_at = EXCLUDED.created_at, updated_at = EXCLUDED.updated_at, name = EXCLUDED.name `
 	// run
-	logf(sqlstr, u.ID, u.CreatedAt, u.UpdatedAt, u.Name, u.Email)
-	if _, err := db.ExecContext(ctx, sqlstr, u.ID, u.CreatedAt, u.UpdatedAt, u.Name, u.Email); err != nil {
+	logf(sqlstr, u.ID, u.CreatedAt, u.UpdatedAt, u.Name)
+	if _, err := db.ExecContext(ctx, sqlstr, u.ID, u.CreatedAt, u.UpdatedAt, u.Name); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -127,33 +126,13 @@ func (u *User) Delete(ctx context.Context, db DB) error {
 	return nil
 }
 
-// UserByEmail retrieves a row from 'public.users' as a [User].
-//
-// Generated from index 'users_email_key'.
-func UserByEmail(ctx context.Context, db DB, email string) (*User, error) {
-	// query
-	const sqlstr = `SELECT ` +
-		`id, created_at, updated_at, name, email ` +
-		`FROM public.users ` +
-		`WHERE email = $1`
-	// run
-	logf(sqlstr, email)
-	u := User{
-		_exists: true,
-	}
-	if err := db.QueryRowContext(ctx, sqlstr, email).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt, &u.Name, &u.Email); err != nil {
-		return nil, logerror(err)
-	}
-	return &u, nil
-}
-
 // UserByName retrieves a row from 'public.users' as a [User].
 //
 // Generated from index 'users_name_key'.
 func UserByName(ctx context.Context, db DB, name string) (*User, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created_at, updated_at, name, email ` +
+		`id, created_at, updated_at, name ` +
 		`FROM public.users ` +
 		`WHERE name = $1`
 	// run
@@ -161,7 +140,7 @@ func UserByName(ctx context.Context, db DB, name string) (*User, error) {
 	u := User{
 		_exists: true,
 	}
-	if err := db.QueryRowContext(ctx, sqlstr, name).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt, &u.Name, &u.Email); err != nil {
+	if err := db.QueryRowContext(ctx, sqlstr, name).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt, &u.Name); err != nil {
 		return nil, logerror(err)
 	}
 	return &u, nil
@@ -173,7 +152,7 @@ func UserByName(ctx context.Context, db DB, name string) (*User, error) {
 func UserByID(ctx context.Context, db DB, id int) (*User, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created_at, updated_at, name, email ` +
+		`id, created_at, updated_at, name ` +
 		`FROM public.users ` +
 		`WHERE id = $1`
 	// run
@@ -181,7 +160,7 @@ func UserByID(ctx context.Context, db DB, id int) (*User, error) {
 	u := User{
 		_exists: true,
 	}
-	if err := db.QueryRowContext(ctx, sqlstr, id).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt, &u.Name, &u.Email); err != nil {
+	if err := db.QueryRowContext(ctx, sqlstr, id).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt, &u.Name); err != nil {
 		return nil, logerror(err)
 	}
 	return &u, nil

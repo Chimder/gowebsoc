@@ -24,6 +24,27 @@ definitions:
         description: updated_at
         type: string
     type: object
+  models.Message:
+    properties:
+      author_id:
+        description: author_id
+        type: string
+      content:
+        description: content
+        type: string
+      created_at:
+        description: created_at
+        type: string
+      id:
+        description: id
+        type: integer
+      podchannel_id:
+        description: podchannel_id
+        type: integer
+      updated_at:
+        description: updated_at
+        type: string
+    type: object
   models.Podchannel:
     properties:
       channel_id:
@@ -38,8 +59,8 @@ definitions:
       name:
         description: name
         type: string
-      type:
-        description: type
+      types:
+        description: types
         type: string
       updated_at:
         description: updated_at
@@ -126,7 +147,7 @@ paths:
         type: string
       - description: type of the podchannel
         in: query
-        name: type
+        name: types
         required: true
         type: string
       - description: channel of the podchannel
@@ -142,6 +163,40 @@ paths:
           schema:
             $ref: '#/definitions/handler.ChannelWithPodchannels'
       summary: Create one podchannel
+      tags:
+      - PodChannel
+  /podchannel/message:
+    get:
+      consumes:
+      - application/json
+      description: mess podchannel
+      operationId: get-podchannel-message
+      parameters:
+      - description: podchannel id
+        in: query
+        name: podchannel_id
+        required: true
+        type: integer
+      - description: podchannel id
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: podchannel id
+        in: query
+        name: offset
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Message'
+            type: array
+      summary: Get Messages PodChannel
       tags:
       - PodChannel
   /podchannels:

@@ -21,10 +21,10 @@ type UserH struct {
 func NewUser(pgdb *sqlx.DB, rdb *redis.Client) *UserH {
 	return &UserH{pgdb: pgdb, rdb: rdb}
 }
-func (u *UserH) ProcessMessages() {
+func ProcessMessages(pgdb *sqlx.DB, rdb *redis.Client) {
 	ctx := context.Background()
 	for {
-		msgData, err := u.rdb.BLPop(ctx, 0, "messageQueue").Result()
+		msgData, err := rdb.BLPop(ctx, 0, "messageQueue").Result()
 		if err != nil {
 			log.Printf("Redis pop error: %s\n", err)
 			continue
@@ -34,18 +34,49 @@ func (u *UserH) ProcessMessages() {
 			continue
 		}
 
-		var message models.Message
+		var message *EventMessage
 		if err := json.Unmarshal([]byte(msgData[1]), &message); err != nil {
 			log.Printf("Unmarshal error: %s\n", err)
 			continue
 		}
+
 		log.Println("REDIS<>ESS", message)
 
-		_, err = u.pgdb.ExecContext(ctx, "INSERT INTO messages (content, author_id, podchannel_id, created_at) VALUES ($1, $2, $3, NOW())",
-			message.Content, message.AuthorID, message.PodchannelID)
+		_, err = pgdb.ExecContext(ctx, "INSERT INTO messages (content, author_id, podchannel_id, created_at) VALUES ($1, $2, $3, NOW())",
+			message.Data, message.AuthorID, message.PodchannelID)
 		if err != nil {
 			log.Printf("DB insert error: %s\n", err)
 		}
+	}
+}
+
+// @Summary		Get Messages PodChannel
+// @Description	mess podchannel
+// @Tags			PodChannel
+// @ID				get-podchannel-message
+// @Accept			json
+// @Produce		json
+// @Param			podchannel_id	query		int	true	"podchannel id"
+// @Param			limit	query		int	true	"limit"
+// @Param			offset	query		int	true	"offset"
+// @Success		200		{array}	models.Message
+// @Router			/podchannel/message [get]
+func (u *UserH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Request) {
+	podchannelId := r.URL.Query().Get("podchannel_id")
+	limit := r.URL.Query().Get("limit")
+	offset := r.URL.Query().Get("offset")
+	messages := []models.Message{}
+
+	query := `SELECT * FROM messages WHERE podchannel_id=$1 ORDER BY created_at ASC LIMIT=$2 OFFSET=$3 `
+	err := u.pgdb.Select(&messages, query, podchannelId, limit, offset)
+	if err != nil {
+		utils.WriteError(w, 500, "Create channel err:", err)
+		return
+	}
+
+	if err := utils.WriteJSON(w, 200, messages); err != nil {
+		utils.WriteError(w, 500, "Create channel write", err)
+		return
 	}
 }
 
@@ -176,7 +207,7 @@ func (u *UserH) GetPodchannels(w http.ResponseWriter, r *http.Request) {
 // @Accept			json
 // @Produce		json
 // @Param			name		query		string	true	"Name of the podchannel"
-// @Param			type		query		string	true	"type of the podchannel"
+// @Param			types		query		string	true	"type of the podchannel"
 // @Param			id	query		int		true	"channel of the podchannel"
 // @Success		200			{object}	ChannelWithPodchannels
 // @Router			/podchannel/create [post]
