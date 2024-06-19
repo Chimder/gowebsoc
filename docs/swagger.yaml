@@ -177,14 +177,14 @@ paths:
         name: podchannel_id
         required: true
         type: integer
-      - description: podchannel id
+      - description: limit
         in: query
         name: limit
         required: true
         type: integer
-      - description: podchannel id
+      - description: page
         in: query
-        name: offset
+        name: page
         required: true
         type: integer
       produces:

@@ -178,15 +178,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "podchannel id",
+                        "description": "limit",
                         "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "podchannel id",
-                        "name": "offset",
+                        "description": "page",
+                        "name": "page",
                         "in": "query",
                         "required": true
                     }

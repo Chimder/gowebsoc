@@ -7,6 +7,7 @@ import (
 	"goSql/utils"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -58,21 +59,31 @@ func ProcessMessages(pgdb *sqlx.DB, rdb *redis.Client) {
 // @Produce		json
 // @Param			podchannel_id	query		int	true	"podchannel id"
 // @Param			limit	query		int	true	"limit"
-// @Param			offset	query		int	true	"offset"
+// @Param			page	query		int	true	"page"
 // @Success		200		{array}	models.Message
 // @Router			/podchannel/message [get]
 func (u *UserH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Request) {
 	podchannelId := r.URL.Query().Get("podchannel_id")
-	limit := r.URL.Query().Get("limit")
-	offset := r.URL.Query().Get("offset")
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * limit
+
 	messages := []models.Message{}
 
-	query := `SELECT * FROM messages WHERE podchannel_id=$1 ORDER BY created_at ASC LIMIT=$2 OFFSET=$3 `
-	err := u.pgdb.Select(&messages, query, podchannelId, limit, offset)
+	query := `SELECT * FROM messages WHERE podchannel_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
+	// query := `SELECT * FROM messages WHERE podchannel_id=$1 LIMIT $2 OFFSET $3`
+	err = u.pgdb.Select(&messages, query, podchannelId, limit, offset)
 	if err != nil {
 		utils.WriteError(w, 500, "Create channel err:", err)
 		return
 	}
+	log.Println("MESSS", messages)
 
 	if err := utils.WriteJSON(w, 200, messages); err != nil {
 		utils.WriteError(w, 500, "Create channel write", err)
