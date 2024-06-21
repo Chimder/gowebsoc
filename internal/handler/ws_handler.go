@@ -47,14 +47,14 @@ func (ws *Server) Run() {
 			case user := <-ws.register:
 				ws.mu.Lock()
 				ws.users[user.ID] = user
-				ws.broadcastUserList()
+				// ws.broadcastUserList()
 				ws.mu.Unlock()
 
 			case user := <-ws.unregister:
 				ws.mu.Lock()
 				if _, ok := ws.users[user.ID]; ok {
 					delete(ws.users, user.ID)
-					ws.broadcastUserList()
+					// ws.broadcastUserList()
 				}
 				ws.mu.Unlock()
 
@@ -62,6 +62,7 @@ func (ws *Server) Run() {
 				ws.mu.Lock()
 				for _, user := range ws.users {
 					if user.PodchannelID == message.PodchannelID {
+						log.Println("SendMESS")
 						if err := user.Conn.WriteJSON(message); err != nil {
 							log.Printf("Write error: %s\n", err)
 						}
@@ -74,10 +75,10 @@ func (ws *Server) Run() {
 					log.Printf("JSON marshal error: %s\n", err)
 					continue
 				}
-				log.Println("MESFD", message)
 
 				if err := ws.rdb.RPush(context.Background(), "messageQueue", messageData).Err(); err != nil {
 					log.Printf("Redis push error: %s\n", err)
+					return
 				}
 			}
 		}
@@ -85,18 +86,18 @@ func (ws *Server) Run() {
 	go ProcessMessages(ws.pgdb, ws.rdb)
 }
 
-func (ws *Server) broadcastUserList() {
-	message := EventMessage{
-		Event: "users",
-		Data:  map[string]int{"users": len(ws.users)},
-	}
+// func (ws *Server) broadcastUserList() {
+// 	message := EventMessage{
+// 		Event: "users",
+// 		Data:  map[string]int{"users": len(ws.users)},
+// 	}
 
-	for _, user := range ws.users {
-		if err := user.Conn.WriteJSON(&message); err != nil {
-			log.Printf("Error broadcasting user list update: %s\n", err)
-		}
-	}
-}
+// 	for _, user := range ws.users {
+// 		if err := user.Conn.WriteJSON(&message); err != nil {
+// 			log.Printf("Error broadcasting user list update: %s\n", err)
+// 		}
+// 	}
+// }
 
 func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -108,6 +109,7 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 
 	userID := uuid.New().String()
 	user := &User{ID: userID, Conn: conn}
+
 	ws.register <- user
 
 	defer func() {
@@ -115,6 +117,7 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 	}()
 
+	// var joined bool
 	for {
 		var eventMessage EventMessage
 		if err := conn.ReadJSON(&eventMessage); err != nil {
@@ -122,19 +125,20 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		log.Println("MESS", eventMessage)
-		// Handle setting channel and podchannel
-		if eventMessage.Event == "join_podchannel" {
-			user.ChannelID = eventMessage.ChannelID
-			user.PodchannelID = eventMessage.PodchannelID
-			continue
-		}
+		log.Printf("Received message: %+v\n", eventMessage)
+
+		// if eventMessage.Event == "join_podchannel" {
+		user.ChannelID = eventMessage.ChannelID
+		user.PodchannelID = eventMessage.PodchannelID
+
+		log.Println("userchanid", user.ChannelID)
+		log.Println("userpodid", user.PodchannelID)
 
 		ws.broadcast <- &EventMessage{
 			Event:        eventMessage.Event,
 			Data:         eventMessage.Data,
-			ChannelID:    user.ChannelID,
-			PodchannelID: user.PodchannelID,
+			ChannelID:    eventMessage.ChannelID,
+			PodchannelID: eventMessage.PodchannelID,
 			AuthorID:     userID,
 		}
 	}

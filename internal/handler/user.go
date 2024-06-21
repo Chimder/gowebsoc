@@ -22,6 +22,7 @@ type UserH struct {
 func NewUser(pgdb *sqlx.DB, rdb *redis.Client) *UserH {
 	return &UserH{pgdb: pgdb, rdb: rdb}
 }
+
 func ProcessMessages(pgdb *sqlx.DB, rdb *redis.Client) {
 	ctx := context.Background()
 	for {
@@ -40,8 +41,6 @@ func ProcessMessages(pgdb *sqlx.DB, rdb *redis.Client) {
 			log.Printf("Unmarshal error: %s\n", err)
 			continue
 		}
-
-		log.Println("REDIS<>ESS", message)
 
 		_, err = pgdb.ExecContext(ctx, "INSERT INTO messages (content, author_id, podchannel_id, created_at) VALUES ($1, $2, $3, NOW())",
 			message.Data, message.AuthorID, message.PodchannelID)
@@ -75,7 +74,6 @@ func (u *UserH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	messages := []models.Message{}
-
 	query := `SELECT * FROM messages WHERE podchannel_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`
 	// query := `SELECT * FROM messages WHERE podchannel_id=$1 LIMIT $2 OFFSET $3`
 	err = u.pgdb.Select(&messages, query, podchannelId, limit, offset)
@@ -83,10 +81,9 @@ func (u *UserH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, 500, "Create channel err:", err)
 		return
 	}
-	log.Println("MESSS", messages)
 
 	if err := utils.WriteJSON(w, 200, messages); err != nil {
-		utils.WriteError(w, 500, "Create channel write", err)
+		utils.WriteError(w, 500, "Get podchan mess write", err)
 		return
 	}
 }

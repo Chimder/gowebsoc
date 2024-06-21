@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
-
-	_ "goSql/docs"
-	"goSql/internal/db"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	_ "goSql/docs"
+	"goSql/internal/db"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -60,6 +60,7 @@ func (s *Server) Close() {
 	if s.rdb != nil {
 		s.rdb.Close()
 	}
+
 }
 
 func (s *Server) ListenAndServe() error {
