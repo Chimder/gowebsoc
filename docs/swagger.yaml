@@ -3,67 +3,51 @@ definitions:
   handler.ChannelWithPodchannels:
     properties:
       channel:
-        $ref: '#/definitions/models.Channel'
+        $ref: '#/definitions/queries.Channel'
       podchannels:
         items:
-          $ref: '#/definitions/models.Podchannel'
+          $ref: '#/definitions/queries.Podchannel'
         type: array
     type: object
-  models.Channel:
+  queries.Channel:
     properties:
       created_at:
-        description: created_at
         type: string
       id:
-        description: id
         type: integer
       name:
-        description: name
         type: string
       updated_at:
-        description: updated_at
         type: string
     type: object
-  models.Message:
+  queries.Message:
     properties:
       author_id:
-        description: author_id
         type: string
       content:
-        description: content
         type: string
       created_at:
-        description: created_at
         type: string
       id:
-        description: id
         type: integer
       podchannel_id:
-        description: podchannel_id
         type: integer
       updated_at:
-        description: updated_at
         type: string
     type: object
-  models.Podchannel:
+  queries.Podchannel:
     properties:
       channel_id:
-        description: channel_id
         type: integer
       created_at:
-        description: created_at
         type: string
       id:
-        description: id
         type: integer
       name:
-        description: name
         type: string
       types:
-        description: types
         type: string
       updated_at:
-        description: updated_at
         type: string
     type: object
 info:
@@ -111,7 +95,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Channel'
+            $ref: '#/definitions/queries.Channel'
       summary: Create Channel
       tags:
       - Channel
@@ -128,7 +112,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Channel'
+              $ref: '#/definitions/queries.Channel'
             type: array
       summary: Get channels
       tags:
@@ -194,7 +178,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Message'
+              $ref: '#/definitions/queries.Message'
             type: array
       summary: Get Messages PodChannel
       tags:
@@ -203,8 +187,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get podchannel
-      operationId: get-podchannel
+      description: Get podchannels
+      operationId: get-podchannels
       parameters:
       - description: ID of the podchannel
         in: query
@@ -218,9 +202,9 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Podchannel'
+              $ref: '#/definitions/queries.Podchannel'
             type: array
-      summary: Get podchannel
+      summary: Get podchannels
       tags:
       - PodChannel
 swagger: "2.0"

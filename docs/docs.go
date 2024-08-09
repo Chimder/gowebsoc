@@ -74,7 +74,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Channel"
+                            "$ref": "#/definitions/queries.Channel"
                         }
                     }
                 }
@@ -100,7 +100,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Channel"
+                                "$ref": "#/definitions/queries.Channel"
                             }
                         }
                     }
@@ -197,7 +197,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Message"
+                                "$ref": "#/definitions/queries.Message"
                             }
                         }
                     }
@@ -206,7 +206,7 @@ const docTemplate = `{
         },
         "/podchannels": {
             "get": {
-                "description": "Get podchannel",
+                "description": "Get podchannels",
                 "consumes": [
                     "application/json"
                 ],
@@ -216,8 +216,8 @@ const docTemplate = `{
                 "tags": [
                     "PodChannel"
                 ],
-                "summary": "Get podchannel",
-                "operationId": "get-podchannel",
+                "summary": "Get podchannels",
+                "operationId": "get-podchannels",
                 "parameters": [
                     {
                         "type": "integer",
@@ -233,7 +233,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Podchannel"
+                                "$ref": "#/definitions/queries.Podchannel"
                             }
                         }
                     }
@@ -246,91 +246,75 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "channel": {
-                    "$ref": "#/definitions/models.Channel"
+                    "$ref": "#/definitions/queries.Channel"
                 },
                 "podchannels": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Podchannel"
+                        "$ref": "#/definitions/queries.Podchannel"
                     }
                 }
             }
         },
-        "models.Channel": {
+        "queries.Channel": {
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "created_at",
                     "type": "string"
                 },
                 "id": {
-                    "description": "id",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "name",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "updated_at",
                     "type": "string"
                 }
             }
         },
-        "models.Message": {
+        "queries.Message": {
             "type": "object",
             "properties": {
                 "author_id": {
-                    "description": "author_id",
                     "type": "string"
                 },
                 "content": {
-                    "description": "content",
                     "type": "string"
                 },
                 "created_at": {
-                    "description": "created_at",
                     "type": "string"
                 },
                 "id": {
-                    "description": "id",
                     "type": "integer"
                 },
                 "podchannel_id": {
-                    "description": "podchannel_id",
                     "type": "integer"
                 },
                 "updated_at": {
-                    "description": "updated_at",
                     "type": "string"
                 }
             }
         },
-        "models.Podchannel": {
+        "queries.Podchannel": {
             "type": "object",
             "properties": {
                 "channel_id": {
-                    "description": "channel_id",
                     "type": "integer"
                 },
                 "created_at": {
-                    "description": "created_at",
                     "type": "string"
                 },
                 "id": {
-                    "description": "id",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "name",
                     "type": "string"
                 },
                 "types": {
-                    "description": "types",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "updated_at",
                     "type": "string"
                 }
             }

@@ -2,18 +2,18 @@ package server
 
 import (
 	"goSql/internal/handler"
+	"goSql/internal/queries"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
+func NewRouter(sqlc *queries.Queries, rdb *redis.Client) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -22,11 +22,13 @@ func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
 
 	//////////////////////
 
-	wsServer := handler.NewWebServer(pgdb, rdb)
+	wsServer := handler.NewWebServer(sqlc, rdb)
 	wsServer.Run()
 
 	//////////////////////
-	userHandler := handler.NewUser(pgdb, rdb)
+	channelHandler := handler.NewChannel(sqlc, rdb)
+	podchannelHandler := handler.NewPodChannel(sqlc, rdb)
+	messageHandler := handler.NewMessage(sqlc, rdb)
 
 	r.Get("/ws", wsServer.WsConnections)
 
@@ -35,13 +37,14 @@ func NewRouter(pgdb *sqlx.DB, rdb *redis.Client) http.Handler {
 	})
 	r.Mount("/swagger/", httpSwagger.WrapHandler)
 
-	r.Get("/channel", userHandler.GetChannel)
-	r.Get("/channels", userHandler.GetChannels)
-	r.Post("/channel/create", userHandler.CreateChannel)
+	r.Get("/channel", channelHandler.GetChannel)
+	r.Get("/channels", channelHandler.GetChannels)
+	r.Post("/channel/create", channelHandler.CreateChannel)
 
-	r.Get("/podchannels", userHandler.GetPodchannels)
-	r.Post("/podchannel/create", userHandler.CreatePodchannel)
-	r.Get("/podchannel/message", userHandler.GetPodchannelsMessages)
+	r.Get("/podchannels", podchannelHandler.GetPodchannels)
+	r.Post("/podchannel/create", podchannelHandler.CreatePodchannel)
+
+	r.Get("/podchannel/message", messageHandler.GetPodchannelsMessages)
 
 	return r
 }

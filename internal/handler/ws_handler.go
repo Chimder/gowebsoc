@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"goSql/internal/queries"
 	"log"
 	"net/http"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,17 +25,17 @@ type Server struct {
 	register   chan *User
 	unregister chan *User
 	mu         sync.Mutex
-	pgdb       *sqlx.DB
+	sqlc       *queries.Queries
 	rdb        *redis.Client
 }
 
-func NewWebServer(pgdb *sqlx.DB, rdb *redis.Client) *Server {
+func NewWebServer(sqlc *queries.Queries, rdb *redis.Client) *Server {
 	return &Server{
 		users:      make(map[string]*User),
 		broadcast:  make(chan *EventMessage),
 		register:   make(chan *User),
 		unregister: make(chan *User),
-		pgdb:       pgdb,
+		sqlc:       sqlc,
 		rdb:        rdb,
 	}
 }
@@ -83,7 +83,7 @@ func (ws *Server) Run() {
 			}
 		}
 	}()
-	go ProcessMessages(ws.pgdb, ws.rdb)
+	go ProcessMessages(ws.sqlc, ws.rdb)
 }
 
 // func (ws *Server) broadcastUserList() {
