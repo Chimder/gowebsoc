@@ -4,7 +4,7 @@ CREATE TABLE
     created_at TIMESTAMP NOT NULL DEFAULT now (),
     updated_at TIMESTAMP NOT NULL DEFAULT now (),
     name VARCHAR(255) UNIQUE NOT NULL
-    
+
   );
 
 CREATE TABLE
@@ -29,9 +29,9 @@ CREATE TABLE
 CREATE TABLE
   messages (
     id SERIAL PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL DEFAULT now (),
+    created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT now (),
-    content TEXT NOT NULL,
+    message TEXT NOT NULL,
     author_id VARCHAR(50) NOT NULL,
     podchannel_id INT NOT NULL,
     FOREIGN KEY (podchannel_id) REFERENCES podchannels (id)

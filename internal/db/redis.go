@@ -20,5 +20,9 @@ func RedisCon() (*redis.Options, error) {
 		InsecureSkipVerify: true,
 	}
 
+	opt.PoolSize = 500
+	opt.MinIdleConns = 10
+	opt.MaxIdleConns = 30
+
 	return opt, nil
 }

@@ -41,7 +41,7 @@ func (m *MessagesH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Reques
 	}
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil || limit <= 0 {
-		limit = 50
+		limit = 10
 	}
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil || page <= 0 {
@@ -67,6 +67,7 @@ func (m *MessagesH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Reques
 func ProcessMessages(sqlc *queries.Queries, rdb *redis.Client) {
 	ctx := context.Background()
 	for {
+		// time := 5 * time.Second
 		msgData, err := rdb.BLPop(ctx, 0, "messageQueue").Result()
 		if err != nil {
 			log.Printf("Redis pop error: %s\n", err)
@@ -77,14 +78,20 @@ func ProcessMessages(sqlc *queries.Queries, rdb *redis.Client) {
 			continue
 		}
 
-		var message *EventMessage
-		if err := json.Unmarshal([]byte(msgData[1]), &message); err != nil {
+		var data *EventMessage
+		if err := json.Unmarshal([]byte(msgData[1]), &data); err != nil {
 			log.Printf("Unmarshal error: %s\n", err)
 			continue
 		}
 
-		err = sqlc.CreateMessage(ctx,queries.CreateMessageParams{
-			Content: message.Data, AuthorID: message.AuthorID, PodchannelID: int32(message.PodchannelID),
+		message, ok := data.Message.(string)
+		if !ok {
+			log.Printf("Data is not a string: %v\n", data.Message)
+			continue
+		}
+
+		err = sqlc.CreateMessage(ctx, queries.CreateMessageParams{
+			Message: message, AuthorID: data.AuthorID, PodchannelID: int32(data.PodchannelID), CreatedAt: data.CreatedAt,
 		})
 		if err != nil {
 			log.Printf("DB insert error: %s\n", err)

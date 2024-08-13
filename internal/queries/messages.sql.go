@@ -7,26 +7,33 @@ package queries
 
 import (
 	"context"
+	"time"
 )
 
 const createMessage = `-- name: CreateMessage :exec
-INSERT INTO messages (content, author_id, podchannel_id, created_at)
-VALUES ($1, $2, $3, NOW())
+INSERT INTO messages (message, author_id, podchannel_id, created_at)
+VALUES ($1, $2, $3, $4)
 `
 
 type CreateMessageParams struct {
-	Content      string `db:"content" json:"content"`
-	AuthorID     string `db:"author_id" json:"author_id"`
-	PodchannelID int32  `db:"podchannel_id" json:"podchannel_id"`
+	Message      string    `db:"message" json:"message"`
+	AuthorID     string    `db:"author_id" json:"author_id"`
+	PodchannelID int32     `db:"podchannel_id" json:"podchannel_id"`
+	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) error {
-	_, err := q.db.Exec(ctx, createMessage, arg.Content, arg.AuthorID, arg.PodchannelID)
+	_, err := q.db.Exec(ctx, createMessage,
+		arg.Message,
+		arg.AuthorID,
+		arg.PodchannelID,
+		arg.CreatedAt,
+	)
 	return err
 }
 
 const getMessages = `-- name: GetMessages :many
-SELECT id, created_at, updated_at, content, author_id, podchannel_id FROM messages
+SELECT id, created_at, updated_at, message, author_id, podchannel_id FROM messages
 WHERE podchannel_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -51,7 +58,7 @@ func (q *Queries) GetMessages(ctx context.Context, arg GetMessagesParams) ([]Mes
 			&i.ID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Content,
+			&i.Message,
 			&i.AuthorID,
 			&i.PodchannelID,
 		); err != nil {

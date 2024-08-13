@@ -19,7 +19,7 @@ type Message struct {
 	ID           int32     `db:"id" json:"id"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
-	Content      string    `db:"content" json:"content"`
+	Message      string    `db:"message" json:"message"`
 	AuthorID     string    `db:"author_id" json:"author_id"`
 	PodchannelID int32     `db:"podchannel_id" json:"podchannel_id"`
 }

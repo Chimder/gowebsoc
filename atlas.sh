@@ -15,7 +15,7 @@ if [ -z "$DB_URL" ]; then
 fi
 
 DEV_URL="docker://postgres"
-MODEL_PATH="file://sqlSh"
+MODEL_PATH="file://sqlc/schema"
 EXCLUDES=(
     "auth"
     "extensions"
@@ -40,7 +40,6 @@ atlas schema apply \
     --url "$DB_URL" \
     --dev-url "$DEV_URL" \
     --to "$MODEL_PATH" \
-    $EXCLUDE_FLAGS
 
 # Check if schema apply was successful
 if [ $? -eq 0 ]; then

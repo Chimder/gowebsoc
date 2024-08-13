@@ -127,7 +127,9 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Received message: %+v\n", eventMessage)
 
-		// if eventMessage.Event == "join_podchannel" {
+		if eventMessage.Event == "join_podchannel" {
+			continue
+		}
 		user.ChannelID = eventMessage.ChannelID
 		user.PodchannelID = eventMessage.PodchannelID
 
@@ -135,11 +137,12 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println("userpodid", user.PodchannelID)
 
 		ws.broadcast <- &EventMessage{
+			AuthorID:     userID,
+			Message:      eventMessage.Message,
 			Event:        eventMessage.Event,
-			Data:         eventMessage.Data,
+			CreatedAt:    eventMessage.CreatedAt,
 			ChannelID:    eventMessage.ChannelID,
 			PodchannelID: eventMessage.PodchannelID,
-			AuthorID:     userID,
 		}
 	}
 }
