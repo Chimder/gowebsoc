@@ -20,23 +20,23 @@ var upgrader = websocket.Upgrader{
 }
 
 type Server struct {
-	users      map[string]*User
-	broadcast  chan *EventMessage
-	register   chan *User
-	unregister chan *User
-	mu         sync.Mutex
-	sqlc       *queries.Queries
-	rdb        *redis.Client
+	usersByChannel map[int]map[string]*User
+	broadcast      chan *EventMessage
+	register       chan *User
+	unregister     chan *User
+	mu             sync.Mutex
+	sqlc           *queries.Queries
+	rdb            *redis.Client
 }
 
 func NewWebServer(sqlc *queries.Queries, rdb *redis.Client) *Server {
 	return &Server{
-		users:      make(map[string]*User),
-		broadcast:  make(chan *EventMessage),
-		register:   make(chan *User),
-		unregister: make(chan *User),
-		sqlc:       sqlc,
-		rdb:        rdb,
+		usersByChannel: make(map[int]map[string]*User),
+		broadcast:      make(chan *EventMessage),
+		register:       make(chan *User),
+		unregister:     make(chan *User),
+		sqlc:           sqlc,
+		rdb:            rdb,
 	}
 }
 
@@ -45,24 +45,30 @@ func (ws *Server) Run() {
 		for {
 			select {
 			case user := <-ws.register:
+				log.Printf("Register")
 				ws.mu.Lock()
-				ws.users[user.ID] = user
-				// ws.broadcastUserList()
+				if _, ok := ws.usersByChannel[user.ChannelID]; !ok {
+					ws.usersByChannel[user.ChannelID] = make(map[string]*User)
+				}
+				ws.usersByChannel[user.ChannelID][user.ID] = user
 				ws.mu.Unlock()
 
 			case user := <-ws.unregister:
+				log.Printf("Unregister")
 				ws.mu.Lock()
-				if _, ok := ws.users[user.ID]; ok {
-					delete(ws.users, user.ID)
-					// ws.broadcastUserList()
+				if users, ok := ws.usersByChannel[user.ChannelID]; ok {
+					delete(users, user.ID)
+					if len(users) == 0 {
+						delete(ws.usersByChannel, user.ChannelID)
+					}
 				}
 				ws.mu.Unlock()
 
 			case message := <-ws.broadcast:
 				ws.mu.Lock()
-				for _, user := range ws.users {
-					if user.PodchannelID == message.PodchannelID {
-						log.Println("SendMESS")
+				if users, ok := ws.usersByChannel[message.ChannelID]; ok {
+					for _, user := range users {
+						log.Printf("Send", message)
 						if err := user.Conn.WriteJSON(message); err != nil {
 							log.Printf("Write error: %s\n", err)
 						}
@@ -86,19 +92,6 @@ func (ws *Server) Run() {
 	go ProcessMessages(ws.sqlc, ws.rdb)
 }
 
-// func (ws *Server) broadcastUserList() {
-// 	message := EventMessage{
-// 		Event: "users",
-// 		Data:  map[string]int{"users": len(ws.users)},
-// 	}
-
-// 	for _, user := range ws.users {
-// 		if err := user.Conn.WriteJSON(&message); err != nil {
-// 			log.Printf("Error broadcasting user list update: %s\n", err)
-// 		}
-// 	}
-// }
-
 func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -108,34 +101,36 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := uuid.New().String()
-	user := &User{ID: userID, Conn: conn}
+	defer conn.Close()
 
-	ws.register <- user
+	var user *User
 
-	defer func() {
-		ws.unregister <- user
-		conn.Close()
-	}()
-
-	// var joined bool
 	for {
 		var eventMessage EventMessage
 		if err := conn.ReadJSON(&eventMessage); err != nil {
 			log.Printf("Read error: %s\n", err)
+			if user != nil {
+				ws.unregister <- user
+			}
 			break
 		}
 
-		log.Printf("Received message: %+v\n", eventMessage)
+		if user == nil {
+			// Регистрация пользователя при первом сообщении
+			user = &User{
+				ID:        userID,
+				Conn:      conn,
+				ChannelID: eventMessage.ChannelID,
+			}
+			ws.register <- user
+		}
 
 		if eventMessage.Event == "join_podchannel" {
+			ws.unregister <- user
+			user = nil
 			continue
 		}
-		user.ChannelID = eventMessage.ChannelID
-		user.PodchannelID = eventMessage.PodchannelID
-
-		log.Println("userchanid", user.ChannelID)
-		log.Println("userpodid", user.PodchannelID)
-
+		log.Printf("Received message: %+v\n", eventMessage)
 		ws.broadcast <- &EventMessage{
 			AuthorID:     userID,
 			Message:      eventMessage.Message,
@@ -144,5 +139,6 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			ChannelID:    eventMessage.ChannelID,
 			PodchannelID: eventMessage.PodchannelID,
 		}
+
 	}
 }

@@ -279,14 +279,14 @@ const docTemplate = `{
                 "author_id": {
                     "type": "string"
                 },
-                "content": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "message": {
+                    "type": "string"
                 },
                 "podchannel_id": {
                     "type": "integer"

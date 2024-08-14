@@ -21,10 +21,3 @@ type EventMessage struct {
 	PodchannelID int         `json:"podchannel_id,omitempty"`
 	AuthorID     string      `json:"author_id,omitempty"`
 }
-
-// type Message struct {
-// 	Content      string    `json:"content"`
-// 	AuthorID     int       `json:"author_id"`
-// 	PodchannelID int       `json:"podchannel_id"`
-// 	CreatedAt    time.Time `json:"created_at"`
-// }
