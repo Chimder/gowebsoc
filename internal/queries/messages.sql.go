@@ -11,11 +11,12 @@ import (
 )
 
 const createMessage = `-- name: CreateMessage :exec
-INSERT INTO messages (message, author_id, podchannel_id, created_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO messages (id, message, author_id, podchannel_id, created_at)
+VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreateMessageParams struct {
+	ID           string    `db:"id" json:"id"`
 	Message      string    `db:"message" json:"message"`
 	AuthorID     string    `db:"author_id" json:"author_id"`
 	PodchannelID int32     `db:"podchannel_id" json:"podchannel_id"`
@@ -24,6 +25,7 @@ type CreateMessageParams struct {
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) error {
 	_, err := q.db.Exec(ctx, createMessage,
+		arg.ID,
 		arg.Message,
 		arg.AuthorID,
 		arg.PodchannelID,

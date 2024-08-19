@@ -5,5 +5,5 @@ ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CreateMessage :exec
-INSERT INTO messages (message, author_id, podchannel_id, created_at)
-VALUES ($1, $2, $3, $4);
+INSERT INTO messages (id, message, author_id, podchannel_id, created_at)
+VALUES ($1, $2, $3, $4, $5);

@@ -16,7 +16,7 @@ type Channel struct {
 }
 
 type Message struct {
-	ID           int32     `db:"id" json:"id"`
+	ID           string    `db:"id" json:"id"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
 	Message      string    `db:"message" json:"message"`

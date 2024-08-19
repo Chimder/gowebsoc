@@ -41,7 +41,7 @@ func (m *MessagesH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Reques
 	}
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil || limit <= 0 {
-		limit = 10
+		limit = 20
 	}
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil || page <= 0 {
@@ -91,7 +91,7 @@ func ProcessMessages(sqlc *queries.Queries, rdb *redis.Client) {
 		}
 
 		err = sqlc.CreateMessage(ctx, queries.CreateMessageParams{
-			Message: message, AuthorID: data.AuthorID, PodchannelID: int32(data.PodchannelID), CreatedAt: data.CreatedAt,
+			ID: data.MessageID, Message: message, AuthorID: data.AuthorID, PodchannelID: int32(data.PodchannelID), CreatedAt: data.CreatedAt,
 		})
 		if err != nil {
 			log.Printf("DB insert error: %s\n", err)

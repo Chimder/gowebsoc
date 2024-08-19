@@ -72,6 +72,50 @@ type ChannelWithPodchannels struct {
 	Podchannels []queries.Podchannel `json:"podchannels"`
 }
 
+// func (c *ChannelH) GetChannels(w http.ResponseWriter, r *Request) {
+// 	op := "handler GetChannels"
+
+// 	// Получаем список всех каналов
+// 	channels, err := c.sqlc.GetChannels(r.Context())
+// 	if err != nil {
+// 		utils.WriteError(w, 500, op+"GC", err)
+// 		return
+// 	}
+
+// 	// Определяем структуру для хранения каналов с их подканалами
+// 	type ChannelWithPodchannels struct {
+// 		Channel    queries.Channel     `json:"channel"`
+// 		Podchannels []queries.Podchannel `json:"podchannels"`
+// 	}
+
+// 	var result []ChannelWithPodchannels
+
+// 	// Для каждого канала получаем его подканалы
+// 	for _, channel := range channels {
+// 		podchannels, err := c.sqlc.GetPodchannels(r.Context(), channel.ID)
+// 		if err != nil {
+// 			utils.WriteError(w, 500, op+"GPC", err)
+// 			return
+// 		}
+
+// 		// Формируем структуру канала с подканалами
+// 		channelWithPodchannels := ChannelWithPodchannels{
+// 			Channel:    channel,
+// 			Podchannels: podchannels,
+// 		}
+
+// 		// Добавляем сформированную структуру в результирующий массив
+// 		result = append(result, channelWithPodchannels)
+// 	}
+
+// 	// Отправляем данные в формате JSON
+// 	if err := utils.WriteJSON(w, 200, result); err != nil {
+// 		utils.WriteError(w, 500, op+"WJ", err)
+// 		return
+// 	}
+// }
+
+
 // @Summary		Get one channel
 // @Description	Get one channel
 // @Tags			Channel

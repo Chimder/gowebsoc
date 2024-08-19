@@ -116,7 +116,6 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if user == nil {
-			// Регистрация пользователя при первом сообщении
 			user = &User{
 				ID:        userID,
 				Conn:      conn,
@@ -133,6 +132,7 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Received message: %+v\n", eventMessage)
 		ws.broadcast <- &EventMessage{
 			AuthorID:     userID,
+			MessageID:    eventMessage.MessageID,
 			Message:      eventMessage.Message,
 			Event:        eventMessage.Event,
 			CreatedAt:    eventMessage.CreatedAt,

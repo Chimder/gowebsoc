@@ -28,7 +28,7 @@ CREATE TABLE
 
 CREATE TABLE
   messages (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT now (),
     message TEXT NOT NULL,
