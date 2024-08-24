@@ -5,7 +5,6 @@ import (
 	"goSql/internal/config"
 	"log"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
@@ -16,10 +15,10 @@ func DBConn(ctx context.Context) (*pgxpool.Pool, error) {
 		log.Fatalf("Unable to parse config: %v", err)
 		return nil, err
 	}
-	cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		_, err := conn.Exec(ctx, "DEALLOCATE ALL")
-		return err
-	}
+	// cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+	// 	_, err := conn.Exec(ctx, "DEALLOCATE ALL")
+	// 	return err
+	// }
 	// cfg.ConnConfig.RuntimeParams["prefer_simple_protocol"] = "1"
 
 	sqlcPool, err := pgxpool.NewWithConfig(ctx, cfg)

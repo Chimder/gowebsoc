@@ -3,7 +3,6 @@
 # Load environment variables from .env file
 source .env
 
-
 if [ -f .env ]; then
   export $(cat .env | grep -v '#' | awk -F= '{print $1}')
 fi
@@ -30,9 +29,9 @@ EXCLUDES=(
     "atlas_schema_revisions"
 )
 
-EXCLUDE_FLAGS=""
+EXCLUDE_FLAGS=()
 for EXCLUDE in "${EXCLUDES[@]}"; do
-    EXCLUDE_FLAGS+="--exclude $EXCLUDE "
+    EXCLUDE_FLAGS+=(--exclude "$EXCLUDE")
 done
 
 # Apply schema
@@ -40,6 +39,7 @@ atlas schema apply \
     --url "$DB_URL" \
     --dev-url "$DEV_URL" \
     --to "$MODEL_PATH" \
+    "${EXCLUDE_FLAGS[@]}"
 
 # Check if schema apply was successful
 if [ $? -eq 0 ]; then
