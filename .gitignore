@@ -6,9 +6,6 @@
 .env.production.local
 .env*.local
 
-# Ignore temporary files and directories
+.tmp
 /tmp
-/.tmp/
-tmp
-
 .env
