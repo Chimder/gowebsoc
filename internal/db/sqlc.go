@@ -16,11 +16,8 @@ func DBConn(ctx context.Context) (*pgxpool.Pool, error) {
 		log.Fatalf("Unable to parse config: %v", err)
 		return nil, err
 	}
+
 	cfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
-	// cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-	// 	_, err := conn.Exec(ctx, "DEALLOCATE ALL")
-	// 	return err
-	// }
 
 	sqlcPool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
