@@ -23,7 +23,7 @@ var upgrader = websocket.Upgrader{
 type Server struct {
 	clients   map[string]*User
 	broadcast chan *EventMessage
-	mu        sync.Mutex
+	mu        sync.RWMutex
 	sqlc      *queries.Queries
 	rdb       *redis.Client
 }
@@ -56,27 +56,24 @@ func NewWebServer(sqlc *queries.Queries, rdb *redis.Client) *Server {
 
 func (ws *Server) Run() {
 	go func() {
-		for {
-			select {
-			case message := <-ws.broadcast:
-				ws.mu.Lock()
-				for _, user := range ws.clients {
-					if err := user.Conn.WriteJSON(message); err != nil {
-						log.Printf("Write error to user %s: %s\n", user.ID, err)
-					}
+		for message := range ws.broadcast {
+			ws.mu.RLock()
+			for _, user := range ws.clients {
+				if err := user.Conn.WriteJSON(message); err != nil {
+					log.Printf("Write error to user %s: %s\n", user.ID, err)
 				}
-				ws.mu.Unlock()
+			}
+			ws.mu.RUnlock()
 
-				messageData, err := json.Marshal(message)
-				if err != nil {
-					log.Printf("JSON marshal error: %s\n", err)
-					continue
-				}
+			messageData, err := json.Marshal(message)
+			if err != nil {
+				log.Printf("JSON marshal error: %s\n", err)
+				continue
+			}
 
-				if err := ws.rdb.RPush(context.Background(), "messageQueue", messageData).Err(); err != nil {
-					log.Printf("Redis push error: %s\n", err)
-					return
-				}
+			if err := ws.rdb.RPush(context.Background(), "messageQueue", messageData).Err(); err != nil {
+				log.Printf("Redis push error: %s\n", err)
+				return
 			}
 		}
 	}()
@@ -99,6 +96,7 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 	ws.mu.Lock()
 	ws.clients[userID] = user
 	ws.mu.Unlock()
+
 	defer func() {
 		ws.mu.Lock()
 		delete(ws.clients, userID)
@@ -113,7 +111,6 @@ func (ws *Server) WsConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		log.Printf("Received message: %+v\n", eventMessage)
 		eventMessage.AuthorID = userID
 		ws.broadcast <- &eventMessage
 	}
