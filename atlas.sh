@@ -14,7 +14,7 @@ if [ -z "$DB_URL" ]; then
 fi
 
 DEV_URL="docker://postgres"
-MODEL_PATH="file://sqlc/schema"
+MODEL_PATH="file://sqlc/schema/schema.sql"
 EXCLUDES=(
     "auth"
     "extensions"
