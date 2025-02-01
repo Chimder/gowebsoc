@@ -41,10 +41,8 @@ func (p *PodChannelH) GetPodchannels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.WriteJSON(w, 200, podchannel); err != nil {
-		utils.WriteError(w, 500, op+"WJ", err)
-		return
-	}
+	utils.WriteJSON(w, 200, podchannel)
+	return
 }
 
 // @Summary		Create one podchannel
@@ -75,8 +73,7 @@ func (p *PodChannelH) CreatePodchannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.WriteJSON(w, 200, podChannels); err != nil {
-		utils.WriteError(w, 500, op+"WJ", err)
-		return
-	}
+	utils.WriteJSON(w, 200, podChannels)
+	return
+
 }

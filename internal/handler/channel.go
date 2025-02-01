@@ -37,10 +37,9 @@ func (c *ChannelH) CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.WriteJSON(w, 200, channel); err != nil {
-		utils.WriteError(w, 500, op+"WJ", err)
-		return
-	}
+	utils.WriteJSON(w, 200, channel)
+	return
+
 }
 
 // @Summary		Get channels
@@ -60,10 +59,8 @@ func (c *ChannelH) GetChannels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.WriteJSON(w, 200, channels); err != nil {
-		utils.WriteError(w, 500, op+"WJ", err)
-		return
-	}
+	utils.WriteJSON(w, 200, channels)
+	return
 
 }
 
@@ -109,7 +106,6 @@ type ChannelWithPodchannels struct {
 // 	}
 // }
 
-
 // @Summary		Get one channel
 // @Description	Get one channel
 // @Tags			Channel
@@ -141,8 +137,6 @@ func (c *ChannelH) GetChannel(w http.ResponseWriter, r *http.Request) {
 
 	channelWithPod := ChannelWithPodchannels{Channel: channel, Podchannels: podchannels}
 
-	if err := utils.WriteJSON(w, 200, channelWithPod); err != nil {
-		utils.WriteError(w, 500, "Get channel write", err)
-		return
-	}
+	utils.WriteJSON(w, 200, channelWithPod)
+
 }

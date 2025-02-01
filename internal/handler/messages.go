@@ -58,10 +58,9 @@ func (m *MessagesH) GetPodchannelsMessages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := utils.WriteJSON(w, 200, messages); err != nil {
-		utils.WriteError(w, 500, op+"WJ", err)
-		return
-	}
+	utils.WriteJSON(w, 200, messages)
+	return
+
 }
 
 func ProcessMessages(sqlc *queries.Queries, rdb *redis.Client) {

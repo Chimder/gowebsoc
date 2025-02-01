@@ -2,26 +2,19 @@ package utils
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 )
 
-func WriteJSON(w http.ResponseWriter, status int, v interface{}) error {
-	data, err := json.Marshal(v)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error encoding JSON: %v", err), http.StatusInternalServerError)
-		return err
-	}
-
+func WriteJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, err = w.Write(data)
-	return err
-
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		errMsg := fmt.Sprintf(`{"error": "Internal server error",  "details": "%v"}`, err)
+		http.Error(w, errMsg, http.StatusInternalServerError)
+	}
 }
 
 func WriteError(w http.ResponseWriter, status int, errorMessage string, err error) {
@@ -31,7 +24,11 @@ func WriteError(w http.ResponseWriter, status int, errorMessage string, err erro
 	} else {
 		errMessage = errorMessage
 	}
-	WriteJSON(w, status, map[string]string{"error": strings.TrimSpace(errMessage)})
+
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(map[string]string{"error": strings.TrimSpace(errMessage)}); err != nil {
+		http.Error(w, `{"error":"err new encoder"}`, http.StatusBadRequest)
+	}
 }
 
 func ParseJSON(r *http.Request, v interface{}) error {
@@ -56,28 +53,27 @@ type BaseModel struct {
 	DeletedAt *time.Time `db:"deleted_at,omitempty"`
 }
 
-// StripGormModel копирует поля из структуры с gorm.Model в структуру без него
-func StripGormModel(input interface{}) (interface{}, error) {
-	val := reflect.ValueOf(input)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+// func StripGormModel(input interface{}) (interface{}, error) {
+// 	val := reflect.ValueOf(input)
+// 	if val.Kind() == reflect.Ptr {
+// 		val = val.Elem()
+// 	}
 
-	if val.Kind() != reflect.Struct {
-		return nil, errors.New("input must be a struct")
-	}
+// 	if val.Kind() != reflect.Struct {
+// 		return nil, errors.New("input must be a struct")
+// 	}
 
-	typ := val.Type()
-	output := reflect.New(typ).Elem()
+// 	typ := val.Type()
+// 	output := reflect.New(typ).Elem()
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		fieldType := typ.Field(i)
-		if fieldType.Anonymous && fieldType.Type == reflect.TypeOf(BaseModel{}) {
-			continue
-		}
-		output.Field(i).Set(field)
-	}
+// 	for i := 0; i < val.NumField(); i++ {
+// 		field := val.Field(i)
+// 		fieldType := typ.Field(i)
+// 		if fieldType.Anonymous && fieldType.Type == reflect.TypeOf(BaseModel{}) {
+// 			continue
+// 		}
+// 		output.Field(i).Set(field)
+// 	}
 
-	return output.Interface(), nil
-}
+// 	return output.Interface(), nil
+// }
